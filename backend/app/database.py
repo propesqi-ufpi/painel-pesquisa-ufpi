@@ -1,21 +1,22 @@
+from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+# Carrega sempre da raiz do projeto, independente de onde o processo é executado
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+load_dotenv(_PROJECT_ROOT / ".env")
 
-# Lê a URL do banco do .env
-# Se não encontrar, usa um valor padrão (útil nos testes)
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://painel:painel123@localhost:5432/pesquisa"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL não está configurada. "
+        "Crie o arquivo .env na raiz do projeto com base em .env.example"
+    )
 
 engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base: classe base que todos os modelos (tabelas) vão herdar
-# O SQLAlchemy usa isso para saber quais tabelas existem no banco
 Base = declarative_base()

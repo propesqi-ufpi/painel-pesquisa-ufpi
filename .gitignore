@@ -27,6 +27,9 @@ frontend/.env*.local
 *.log
 docker-compose.override.yml
 
+# Variáveis de ambiente — nunca commitar arquivos .env reais
+/.env
+
 # VS Code
 .vscode/
 

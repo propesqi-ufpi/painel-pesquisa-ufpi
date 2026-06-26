@@ -27,6 +27,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Rodar testes com cobertura
+        env:
+          DATABASE_URL: "sqlite:///./test.db"
+          SECRET_KEY: "chave-somente-para-ci-nao-usar-em-producao"
         run: |
           cd backend
           pytest tests/ -v --tb=short --cov=app --cov-report=term-missing
