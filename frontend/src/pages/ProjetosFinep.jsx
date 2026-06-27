@@ -39,17 +39,19 @@ function BarLabelMi({ x, y, width, value }) {
   )
 }
 
+function fa(arr) { return arr.length > 0 ? arr : undefined }
+
 export default function ProjetosFinep() {
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosRelacao,   setDadosRelacao]   = useState([])
   const [dadosPorCentro, setDadosPorCentro] = useState([])
 
-  const [filtroAnoInicio,  setFiltroAnoInicio]  = useState('')
-  const [filtroAnoTermino, setFiltroAnoTermino] = useState('')
-  const [filtroCentro,     setFiltroCentro]     = useState('')
-  const [filtroNatureza,   setFiltroNatureza]   = useState('')
-  const [filtroSituacao,   setFiltroSituacao]   = useState('')
+  const [filtroAnoInicio,  setFiltroAnoInicio]  = useState([])
+  const [filtroAnoTermino, setFiltroAnoTermino] = useState([])
+  const [filtroCentro,     setFiltroCentro]     = useState([])
+  const [filtroNatureza,   setFiltroNatureza]   = useState([])
+  const [filtroSituacao,   setFiltroSituacao]   = useState([])
 
   const [loadingKpis,     setLoadingKpis]     = useState(true)
   const [loadingGraficos, setLoadingGraficos] = useState(true)
@@ -58,17 +60,20 @@ export default function ProjetosFinep() {
   const refGraficoCentro = useRef(null)
 
   const filtrosAtivos = {
-    ano_inicio:  filtroAnoInicio  || undefined,
-    ano_termino: filtroAnoTermino || undefined,
-    centro:      filtroCentro     || undefined,
-    natureza:    filtroNatureza   || undefined,
-    situacao:    filtroSituacao   || undefined,
+    ano_inicio:  fa(filtroAnoInicio),
+    ano_termino: fa(filtroAnoTermino),
+    centro:      fa(filtroCentro),
+    natureza:    fa(filtroNatureza),
+    situacao:    fa(filtroSituacao),
   }
 
   useEffect(() => {
     getKPIsFinep().then(setKpis).catch(() => {}).finally(() => setLoadingKpis(false))
-    getFiltrosFinep().then(setOpcoes).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    getFiltrosFinep(filtrosAtivos).then(setOpcoes).catch(() => {})
+  }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroSituacao]) // eslint-disable-line
 
   useEffect(() => {
     setLoadingGraficos(true)
@@ -79,11 +84,11 @@ export default function ProjetosFinep() {
   }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroSituacao]) // eslint-disable-line
 
   function limparFiltros() {
-    setFiltroAnoInicio('')
-    setFiltroAnoTermino('')
-    setFiltroCentro('')
-    setFiltroNatureza('')
-    setFiltroSituacao('')
+    setFiltroAnoInicio([])
+    setFiltroAnoTermino([])
+    setFiltroCentro([])
+    setFiltroNatureza([])
+    setFiltroSituacao([])
   }
 
   const totalRelacao = dadosRelacao.reduce((s, d) => s + (d.total ?? 0), 0)

@@ -44,6 +44,8 @@ function toOpts(arr = []) {
   return arr.map((v) => ({ value: String(v), label: String(v) }))
 }
 
+function fa(arr) { return arr.length > 0 ? arr : undefined }
+
 function CardPosGrad({ valor, loading }) {
   if (loading) return <SkeletonCard />
   return (
@@ -61,11 +63,11 @@ export default function PosGraduacao() {
   const [dadosPorCentro, setDadosPorCentro] = useState([])
   const [programas,      setProgramas]      = useState([])
 
-  const [filtroPrograma, setFiltroPrograma] = useState('')
-  const [filtroConceito, setFiltroConceito] = useState('')
-  const [filtroCentro,   setFiltroCentro]   = useState('')
-  const [filtroNivel,    setFiltroNivel]    = useState('')
-  const [filtroTipo,     setFiltroTipo]     = useState('')
+  const [filtroPrograma, setFiltroPrograma] = useState([])
+  const [filtroConceito, setFiltroConceito] = useState([])
+  const [filtroCentro,   setFiltroCentro]   = useState([])
+  const [filtroNivel,    setFiltroNivel]    = useState([])
+  const [filtroTipo,     setFiltroTipo]     = useState([])
 
   const [loadingKpis,    setLoadingKpis]    = useState(true)
   const [loadingGrafico, setLoadingGrafico] = useState(true)
@@ -74,17 +76,20 @@ export default function PosGraduacao() {
   const refGrafico = useRef(null)
 
   const filtrosAtivos = {
-    programa:       filtroPrograma  || undefined,
-    conceito_capes: filtroConceito  || undefined,
-    centro:         filtroCentro    || undefined,
-    nivel:          filtroNivel     || undefined,
-    tipo:           filtroTipo      || undefined,
+    programa:       fa(filtroPrograma),
+    conceito_capes: fa(filtroConceito),
+    centro:         fa(filtroCentro),
+    nivel:          fa(filtroNivel),
+    tipo:           fa(filtroTipo),
   }
 
   useEffect(() => {
     getKPIsPosGraduacao().then(setKpis).catch(() => {}).finally(() => setLoadingKpis(false))
-    getFiltrosPosGraduacao().then(setOpcoes).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    getFiltrosPosGraduacao(filtrosAtivos).then(setOpcoes).catch(() => {})
+  }, [filtroPrograma, filtroConceito, filtroCentro, filtroNivel, filtroTipo]) // eslint-disable-line
 
   useEffect(() => {
     setLoadingGrafico(true)
@@ -100,11 +105,11 @@ export default function PosGraduacao() {
   }, [filtroPrograma, filtroConceito, filtroCentro, filtroNivel, filtroTipo]) // eslint-disable-line
 
   function limparFiltros() {
-    setFiltroPrograma('')
-    setFiltroConceito('')
-    setFiltroCentro('')
-    setFiltroNivel('')
-    setFiltroTipo('')
+    setFiltroPrograma([])
+    setFiltroConceito([])
+    setFiltroCentro([])
+    setFiltroNivel([])
+    setFiltroTipo([])
   }
 
   return (
@@ -151,11 +156,11 @@ export default function PosGraduacao() {
         <div className="w-52 flex-shrink-0">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm h-full">
             <div className="grid grid-cols-2 gap-2">
-              <FiltroSelect label="Programa"      value={filtroPrograma} onChange={setFiltroPrograma} options={toOpts(opcoes.programas)} />
+              <FiltroSelect label="Programa"       value={filtroPrograma} onChange={setFiltroPrograma} options={toOpts(opcoes.programas)} />
               <FiltroSelect label="Conceito CAPES" value={filtroConceito} onChange={setFiltroConceito} options={toOpts(opcoes.conceitos_capes)} />
-              <FiltroSelect label="Centro/Campi"  value={filtroCentro}   onChange={setFiltroCentro}   options={toOpts(opcoes.centros)} />
-              <FiltroSelect label="Nível"         value={filtroNivel}    onChange={setFiltroNivel}    options={toOpts(opcoes.niveis)} />
-              <FiltroSelect label="Tipo"          value={filtroTipo}     onChange={setFiltroTipo}     options={toOpts(opcoes.tipos)} />
+              <FiltroSelect label="Centro/Campi"   value={filtroCentro}   onChange={setFiltroCentro}   options={toOpts(opcoes.centros)} />
+              <FiltroSelect label="Nível"          value={filtroNivel}    onChange={setFiltroNivel}    options={toOpts(opcoes.niveis)} />
+              <FiltroSelect label="Tipo"           value={filtroTipo}     onChange={setFiltroTipo}     options={toOpts(opcoes.tipos)} />
               <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
             </div>
           </div>

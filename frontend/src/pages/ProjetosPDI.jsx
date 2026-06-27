@@ -49,6 +49,8 @@ function toOpts(arr = []) {
   return arr.map((v) => ({ value: String(v), label: String(v) }))
 }
 
+function fa(arr) { return arr.length > 0 ? arr : undefined }
+
 export default function ProjetosPDI() {
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
@@ -56,12 +58,12 @@ export default function ProjetosPDI() {
   const [dadosPorCentro, setDadosPorCentro] = useState([])
   const [projetos,       setProjetos]       = useState([])
 
-  const [filtroAnoInicio,  setFiltroAnoInicio]  = useState('')
-  const [filtroAnoTermino, setFiltroAnoTermino] = useState('')
-  const [filtroCentro,     setFiltroCentro]     = useState('')
-  const [filtroNatureza,   setFiltroNatureza]   = useState('')
-  const [filtroArea,       setFiltroArea]       = useState('')
-  const [filtroSituacao,   setFiltroSituacao]   = useState('')
+  const [filtroAnoInicio,  setFiltroAnoInicio]  = useState([])
+  const [filtroAnoTermino, setFiltroAnoTermino] = useState([])
+  const [filtroCentro,     setFiltroCentro]     = useState([])
+  const [filtroNatureza,   setFiltroNatureza]   = useState([])
+  const [filtroArea,       setFiltroArea]       = useState([])
+  const [filtroSituacao,   setFiltroSituacao]   = useState([])
 
   const [loadingKpis,     setLoadingKpis]     = useState(true)
   const [loadingGraficos, setLoadingGraficos] = useState(true)
@@ -71,18 +73,21 @@ export default function ProjetosPDI() {
   const refGraficoCentro = useRef(null)
 
   const filtrosAtivos = {
-    ano_inicio:  filtroAnoInicio  || undefined,
-    ano_termino: filtroAnoTermino || undefined,
-    centro:      filtroCentro     || undefined,
-    natureza:    filtroNatureza   || undefined,
-    area:        filtroArea       || undefined,
-    situacao:    filtroSituacao   || undefined,
+    ano_inicio:  fa(filtroAnoInicio),
+    ano_termino: fa(filtroAnoTermino),
+    centro:      fa(filtroCentro),
+    natureza:    fa(filtroNatureza),
+    area:        fa(filtroArea),
+    situacao:    fa(filtroSituacao),
   }
 
   useEffect(() => {
     getKPIsProjetosPDI().then(setKpis).catch(() => {}).finally(() => setLoadingKpis(false))
-    getFiltrosPDI().then(setOpcoes).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    getFiltrosPDI(filtrosAtivos).then(setOpcoes).catch(() => {})
+  }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroArea, filtroSituacao]) // eslint-disable-line
 
   useEffect(() => {
     setLoadingGraficos(true)
@@ -101,12 +106,12 @@ export default function ProjetosPDI() {
   }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroArea, filtroSituacao]) // eslint-disable-line
 
   function limparFiltros() {
-    setFiltroAnoInicio('')
-    setFiltroAnoTermino('')
-    setFiltroCentro('')
-    setFiltroNatureza('')
-    setFiltroArea('')
-    setFiltroSituacao('')
+    setFiltroAnoInicio([])
+    setFiltroAnoTermino([])
+    setFiltroCentro([])
+    setFiltroNatureza([])
+    setFiltroArea([])
+    setFiltroSituacao([])
   }
 
   return (

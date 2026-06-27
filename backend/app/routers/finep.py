@@ -1,6 +1,6 @@
 from collections import defaultdict
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.dependencies import get_db, verificar_autenticacao
@@ -11,14 +11,14 @@ _PDI = models.ProjetoPDI
 _FINEP = _PDI.agencia_fomento.ilike("FINEP")
 
 
-def _filtrar_finep(q, ano_inicio=None, ano_termino=None, centro=None,
-                   natureza=None, situacao=None):
+def _filtrar_finep(q, anos_inicio=None, anos_termino=None, centros=None,
+                   naturezas=None, situacoes=None):
     q = q.filter(_FINEP)
-    if ano_inicio:  q = q.filter(_PDI.ano_inicio == ano_inicio)
-    if ano_termino: q = q.filter(_PDI.ano_fim == ano_termino)
-    if centro:      q = q.filter(_PDI.centro.ilike(f"%{centro}%"))
-    if natureza:    q = q.filter(_PDI.natureza.ilike(f"%{natureza}%"))
-    if situacao:    q = q.filter(_PDI.situacao.ilike(f"%{situacao}%"))
+    if anos_inicio:  q = q.filter(_PDI.ano_inicio.in_(anos_inicio))
+    if anos_termino: q = q.filter(_PDI.ano_fim.in_(anos_termino))
+    if centros:      q = q.filter(or_(*[_PDI.centro.ilike(f"%{c}%") for c in centros]))
+    if naturezas:    q = q.filter(or_(*[_PDI.natureza.ilike(f"%{n}%") for n in naturezas]))
+    if situacoes:    q = q.filter(or_(*[_PDI.situacao.ilike(f"%{s}%") for s in situacoes]))
     return q
 
 
@@ -39,37 +39,52 @@ def finep_kpis(
 
 @router.get("/filtros")
 def finep_filtros(
+    ano_inicio:  list[int] = Query(default=[]),
+    ano_termino: list[int] = Query(default=[]),
+    centro:      list[str] = Query(default=[]),
+    natureza:    list[str] = Query(default=[]),
+    situacao:    list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _str(col):
-        return sorted(
-            r[0]
-            for r in db.query(col).filter(_FINEP, col != None, col != "--").distinct().all()
+    def _q(exc=None):
+        return _filtrar_finep(
+            db.query(_PDI),
+            anos_inicio=  ano_inicio  if exc != 'ano_inicio'  else None,
+            anos_termino= ano_termino if exc != 'ano_termino' else None,
+            centros=      centro      if exc != 'centro'      else None,
+            naturezas=    natureza    if exc != 'natureza'    else None,
+            situacoes=    situacao    if exc != 'situacao'    else None,
         )
 
-    def _int(col):
+    def _str_vals(col, campo):
         return sorted(
-            r[0]
-            for r in db.query(col).filter(_FINEP, col != None).distinct().all()
+            r[0] for r in _q(campo).with_entities(col)
+            .filter(col != None, col != "--").distinct().all()
+        )
+
+    def _int_vals(col, campo):
+        return sorted(
+            r[0] for r in _q(campo).with_entities(col)
+            .filter(col != None).distinct().all()
         )
 
     return {
-        "anos_inicio":  _int(_PDI.ano_inicio),
-        "anos_termino": _int(_PDI.ano_fim),
-        "centros":      _str(_PDI.centro),
-        "naturezas":    _str(_PDI.natureza),
-        "situacoes":    _str(_PDI.situacao),
+        "anos_inicio":  _int_vals(_PDI.ano_inicio, 'ano_inicio'),
+        "anos_termino": _int_vals(_PDI.ano_fim,    'ano_termino'),
+        "centros":      _str_vals(_PDI.centro,     'centro'),
+        "naturezas":    _str_vals(_PDI.natureza,   'natureza'),
+        "situacoes":    _str_vals(_PDI.situacao,   'situacao'),
     }
 
 
 @router.get("/relacao-tipo")
 def finep_relacao_tipo(
-    ano_inicio:  int | None = Query(None),
-    ano_termino: int | None = Query(None),
-    centro:      str | None = Query(None),
-    natureza:    str | None = Query(None),
-    situacao:    str | None = Query(None),
+    ano_inicio:  list[int] = Query(default=[]),
+    ano_termino: list[int] = Query(default=[]),
+    centro:      list[str] = Query(default=[]),
+    natureza:    list[str] = Query(default=[]),
+    situacao:    list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
@@ -88,11 +103,11 @@ def finep_relacao_tipo(
 
 @router.get("/por-centro")
 def finep_por_centro(
-    ano_inicio:  int | None = Query(None),
-    ano_termino: int | None = Query(None),
-    centro:      str | None = Query(None),
-    natureza:    str | None = Query(None),
-    situacao:    str | None = Query(None),
+    ano_inicio:  list[int] = Query(default=[]),
+    ano_termino: list[int] = Query(default=[]),
+    centro:      list[str] = Query(default=[]),
+    natureza:    list[str] = Query(default=[]),
+    situacao:    list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
@@ -112,11 +127,11 @@ def finep_por_centro(
 
 @router.get("", response_model=list[schemas.ProjetoPDIOut])
 def listar_finep(
-    ano_inicio:  int | None = Query(None),
-    ano_termino: int | None = Query(None),
-    centro:      str | None = Query(None),
-    natureza:    str | None = Query(None),
-    situacao:    str | None = Query(None),
+    ano_inicio:  list[int] = Query(default=[]),
+    ano_termino: list[int] = Query(default=[]),
+    centro:      list[str] = Query(default=[]),
+    natureza:    list[str] = Query(default=[]),
+    situacao:    list[str] = Query(default=[]),
     skip:  int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),

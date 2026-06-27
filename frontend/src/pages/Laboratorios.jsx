@@ -32,6 +32,8 @@ function toOpts(arr = []) {
   return arr.map((v) => ({ value: String(v), label: String(v) }))
 }
 
+function fa(arr) { return arr.length > 0 ? arr : undefined }
+
 function CardLabs({ valor, loading }) {
   if (loading) return <SkeletonCard />
   return (
@@ -49,8 +51,8 @@ export default function Laboratorios() {
   const [dadosPorCentro, setDadosPorCentro] = useState([])
   const [labs,           setLabs]           = useState([])
 
-  const [filtroNome,   setFiltroNome]   = useState('')
-  const [filtroCentro, setFiltroCentro] = useState('')
+  const [filtroNome,   setFiltroNome]   = useState([])
+  const [filtroCentro, setFiltroCentro] = useState([])
 
   const [loadingKpis,    setLoadingKpis]    = useState(true)
   const [loadingGrafico, setLoadingGrafico] = useState(true)
@@ -59,14 +61,17 @@ export default function Laboratorios() {
   const refGrafico = useRef(null)
 
   const filtrosAtivos = {
-    nome:         filtroNome   || undefined,
-    centro_campi: filtroCentro || undefined,
+    nome:         fa(filtroNome),
+    centro_campi: fa(filtroCentro),
   }
 
   useEffect(() => {
     getKPIsLaboratorios().then(setKpis).catch(() => {}).finally(() => setLoadingKpis(false))
-    getFiltrosLaboratorios().then(setOpcoes).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    getFiltrosLaboratorios(filtrosAtivos).then(setOpcoes).catch(() => {})
+  }, [filtroNome, filtroCentro]) // eslint-disable-line
 
   useEffect(() => {
     setLoadingGrafico(true)
@@ -82,8 +87,8 @@ export default function Laboratorios() {
   }, [filtroNome, filtroCentro]) // eslint-disable-line
 
   function limparFiltros() {
-    setFiltroNome('')
-    setFiltroCentro('')
+    setFiltroNome([])
+    setFiltroCentro([])
   }
 
   const totalPie = dadosPorCentro.reduce((s, d) => s + (d.total ?? 0), 0)
@@ -142,7 +147,7 @@ export default function Laboratorios() {
         {/* Filtros */}
         <div className="w-44 flex-shrink-0">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm h-full space-y-2">
-            <FiltroSelect label="Laboratório" value={filtroNome}   onChange={setFiltroNome}   options={toOpts(opcoes.nomes)} />
+            <FiltroSelect label="Laboratório"  value={filtroNome}   onChange={setFiltroNome}   options={toOpts(opcoes.nomes)} />
             <FiltroSelect label="Centro/Campi" value={filtroCentro} onChange={setFiltroCentro} options={toOpts(opcoes.centros)} />
             <BotaoLimparFiltros onClick={limparFiltros} />
           </div>

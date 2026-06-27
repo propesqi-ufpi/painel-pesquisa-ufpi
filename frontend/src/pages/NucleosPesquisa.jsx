@@ -41,16 +41,18 @@ function toOpts(arr = []) {
   return arr.map((v) => ({ value: String(v), label: String(v) }))
 }
 
+function fa(arr) { return arr.length > 0 ? arr : undefined }
+
 export default function NucleosPesquisa() {
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCentro, setDadosPorCentro] = useState([])
   const [nucleos,        setNucleos]        = useState([])
 
-  const [filtroCentro,      setFiltroCentro]      = useState('')
-  const [filtroVinculacao,  setFiltroVinculacao]  = useState('')
-  const [filtroAno,         setFiltroAno]         = useState('')
-  const [filtroDenominacao, setFiltroDenominacao] = useState('')
+  const [filtroCentro,      setFiltroCentro]      = useState([])
+  const [filtroVinculacao,  setFiltroVinculacao]  = useState([])
+  const [filtroAno,         setFiltroAno]         = useState([])
+  const [filtroDenominacao, setFiltroDenominacao] = useState([])
 
   const [loadingKpis,    setLoadingKpis]    = useState(true)
   const [loadingGrafico, setLoadingGrafico] = useState(true)
@@ -59,16 +61,19 @@ export default function NucleosPesquisa() {
   const refGrafico = useRef(null)
 
   const filtrosAtivos = {
-    centro_campus: filtroCentro      || undefined,
-    vinculacao:    filtroVinculacao  || undefined,
-    ano_resolucao: filtroAno         || undefined,
-    denominacao:   filtroDenominacao || undefined,
+    centro_campus: fa(filtroCentro),
+    vinculacao:    fa(filtroVinculacao),
+    ano_resolucao: fa(filtroAno),
+    denominacao:   fa(filtroDenominacao),
   }
 
   useEffect(() => {
     getKPIsNucleos().then(setKpis).catch(() => {}).finally(() => setLoadingKpis(false))
-    getFiltrosNucleos().then(setOpcoes).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    getFiltrosNucleos(filtrosAtivos).then(setOpcoes).catch(() => {})
+  }, [filtroCentro, filtroVinculacao, filtroAno, filtroDenominacao]) // eslint-disable-line
 
   useEffect(() => {
     setLoadingGrafico(true)
@@ -84,10 +89,10 @@ export default function NucleosPesquisa() {
   }, [filtroCentro, filtroVinculacao, filtroAno, filtroDenominacao]) // eslint-disable-line
 
   function limparFiltros() {
-    setFiltroCentro('')
-    setFiltroVinculacao('')
-    setFiltroAno('')
-    setFiltroDenominacao('')
+    setFiltroCentro([])
+    setFiltroVinculacao([])
+    setFiltroAno([])
+    setFiltroDenominacao([])
   }
 
   return (
@@ -101,9 +106,9 @@ export default function NucleosPesquisa() {
             <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
           ) : (
             <>
-              <CardMetrica titulo="Total"   valor={kpis.total_nucleos}   icone={iconNucleos} />
-              <CardMetrica titulo="Ativos"  valor={kpis.total_ativos}    icone={iconNucleosAtivos} />
-              <CardMetrica titulo="Inativos" valor={kpis.total_inativos} icone={iconNucleosInativos} />
+              <CardMetrica titulo="Total"    valor={kpis.total_nucleos}   icone={iconNucleos} />
+              <CardMetrica titulo="Ativos"   valor={kpis.total_ativos}    icone={iconNucleosAtivos} />
+              <CardMetrica titulo="Inativos" valor={kpis.total_inativos}  icone={iconNucleosInativos} />
             </>
           )}
         </div>

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func, distinct
+from sqlalchemy import func, distinct, or_
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.dependencies import get_db, verificar_autenticacao
@@ -9,9 +9,9 @@ router = APIRouter(prefix="/incubadas", tags=["Empresas Incubadas"])
 _E = models.EmpresaIncubada
 
 
-def _filtrar_incubadas(q, incubadora=None, situacao=None):
-    if incubadora: q = q.filter(_E.incubadora.ilike(f"%{incubadora}%"))
-    if situacao:   q = q.filter(_E.tipo_empresa.ilike(f"%{situacao}%"))
+def _filtrar_incubadas(q, incubadoras=None, situacoes=None):
+    if incubadoras: q = q.filter(or_(*[_E.incubadora.ilike(f"%{v}%") for v in incubadoras]))
+    if situacoes:   q = q.filter(or_(*[_E.tipo_empresa.ilike(f"%{v}%") for v in situacoes]))
     return q
 
 
@@ -44,24 +44,34 @@ def incubadas_kpis(
 
 @router.get("/filtros")
 def incubadas_filtros(
+    incubadora: list[str] = Query(default=[]),
+    situacao:   list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _unicos(col):
+    def _q(exc=None):
+        return _filtrar_incubadas(
+            db.query(_E),
+            incubadoras= incubadora if exc != 'incubadora' else None,
+            situacoes=   situacao   if exc != 'situacao'   else None,
+        )
+
+    def _vals(col, campo):
         return sorted(
-            r[0] for r in db.query(col).filter(col != None).distinct().all()
+            r[0] for r in _q(campo).with_entities(col)
+            .filter(col != None).distinct().all()
         )
 
     return {
-        "incubadoras": _unicos(_E.incubadora),
-        "situacoes":   _unicos(_E.tipo_empresa),
+        "incubadoras": _vals(_E.incubadora,   'incubadora'),
+        "situacoes":   _vals(_E.tipo_empresa, 'situacao'),
     }
 
 
 @router.get("/por-incubadora")
 def incubadas_por_incubadora(
-    incubadora: str | None = Query(None),
-    situacao:   str | None = Query(None),
+    incubadora: list[str] = Query(default=[]),
+    situacao:   list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
@@ -74,8 +84,8 @@ def incubadas_por_incubadora(
 
 @router.get("", response_model=list[schemas.EmpresaIncubadaOut])
 def listar_incubadas(
-    incubadora: str | None = Query(None),
-    situacao:   str | None = Query(None),
+    incubadora: list[str] = Query(default=[]),
+    situacao:   list[str] = Query(default=[]),
     skip:  int = Query(0, ge=0),
     limit: int = Query(9999, ge=1, le=9999),
     db: Session = Depends(get_db),

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.dependencies import get_db, verificar_autenticacao
@@ -9,11 +9,11 @@ router = APIRouter(prefix="/bolsistas", tags=["Bolsistas"])
 _B = models.Bolsista
 
 
-def _filtrar_bolsistas(q, modalidade=None, orgao=None, campus_centro=None, nome=None):
-    if modalidade:    q = q.filter(_B.modalidade.ilike(f"%{modalidade}%"))
-    if orgao:         q = q.filter(_B.orgao.ilike(f"%{orgao}%"))
-    if campus_centro: q = q.filter(_B.campus_centro.ilike(f"%{campus_centro}%"))
-    if nome:          q = q.filter(_B.nome.ilike(f"%{nome}%"))
+def _filtrar_bolsistas(q, modalidades=None, orgaos=None, campi=None, nomes=None):
+    if modalidades: q = q.filter(or_(*[_B.modalidade.ilike(f"%{v}%") for v in modalidades]))
+    if orgaos:      q = q.filter(or_(*[_B.orgao.ilike(f"%{v}%") for v in orgaos]))
+    if campi:       q = q.filter(or_(*[_B.campus_centro.ilike(f"%{v}%") for v in campi]))
+    if nomes:       q = q.filter(or_(*[_B.nome.ilike(f"%{v}%") for v in nomes]))
     return q
 
 
@@ -38,28 +38,42 @@ def bolsistas_kpis(
 
 @router.get("/filtros")
 def bolsistas_filtros(
+    modalidade:    list[str] = Query(default=[]),
+    orgao:         list[str] = Query(default=[]),
+    campus_centro: list[str] = Query(default=[]),
+    nome:          list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _unicos(col):
+    def _q(exc=None):
+        return _filtrar_bolsistas(
+            db.query(_B),
+            modalidades= modalidade    if exc != 'modalidade'    else None,
+            orgaos=      orgao         if exc != 'orgao'         else None,
+            campi=       campus_centro if exc != 'campus_centro' else None,
+            nomes=       nome          if exc != 'nome'          else None,
+        )
+
+    def _vals(col, campo):
         return sorted(
-            r[0] for r in db.query(col).filter(col != None).distinct().all()
+            r[0] for r in _q(campo).with_entities(col)
+            .filter(col != None).distinct().all()
         )
 
     return {
-        "modalidades": _unicos(_B.modalidade),
-        "orgaos":      _unicos(_B.orgao),
-        "campi":       _unicos(_B.campus_centro),
-        "nomes":       _unicos(_B.nome),
+        "modalidades": _vals(_B.modalidade,    'modalidade'),
+        "orgaos":      _vals(_B.orgao,         'orgao'),
+        "campi":       _vals(_B.campus_centro, 'campus_centro'),
+        "nomes":       _vals(_B.nome,          'nome'),
     }
 
 
 @router.get("/por-campus")
 def bolsistas_por_campus(
-    modalidade:    str | None = Query(None),
-    orgao:         str | None = Query(None),
-    campus_centro: str | None = Query(None),
-    nome:          str | None = Query(None),
+    modalidade:    list[str] = Query(default=[]),
+    orgao:         list[str] = Query(default=[]),
+    campus_centro: list[str] = Query(default=[]),
+    nome:          list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
@@ -72,10 +86,10 @@ def bolsistas_por_campus(
 
 @router.get("", response_model=list[schemas.BolsistaOut])
 def listar_bolsistas(
-    modalidade:    str | None = Query(None),
-    orgao:         str | None = Query(None),
-    campus_centro: str | None = Query(None),
-    nome:          str | None = Query(None),
+    modalidade:    list[str] = Query(default=[]),
+    orgao:         list[str] = Query(default=[]),
+    campus_centro: list[str] = Query(default=[]),
+    nome:          list[str] = Query(default=[]),
     skip:  int = Query(0, ge=0),
     limit: int = Query(9999, ge=1, le=9999),
     db: Session = Depends(get_db),

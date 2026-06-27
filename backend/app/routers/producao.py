@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.dependencies import get_db, verificar_autenticacao
@@ -25,7 +25,6 @@ def producao_kpis(
     return {tipo: _soma(tipo) for tipo in _TIPOS}
 
 
-# Rotas estáticas /anual/* antes de qualquer rota dinâmica futura
 @router.get("/anual/tipos")
 def anual_tipos(
     db: Session = Depends(get_db),
@@ -48,14 +47,14 @@ def anual_anos(
 
 @router.get("/anual", response_model=list[schemas.ProducaoAnualOut])
 def listar_anual(
-    tipo: str | None = Query(None),
-    ano: int | None = Query(None),
+    tipo: list[str] = Query(default=[]),
+    ano:  list[int] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
     q = db.query(_ANU)
-    if tipo: q = q.filter(_ANU.tipo == tipo.upper())
-    if ano:  q = q.filter(_ANU.ano == ano)
+    if tipo: q = q.filter(or_(*[_ANU.tipo == t.upper() for t in tipo]))
+    if ano:  q = q.filter(_ANU.ano.in_(ano))
     return q.order_by(_ANU.ano.asc()).all()
 
 
@@ -78,8 +77,8 @@ def vitrine_inventores(
 
 @router.get("/vitrine", response_model=list[schemas.VitrineProducaoOut])
 def listar_vitrine(
-    tipo: str | None = Query(None),
-    ano: int | None = Query(None),
+    tipo:     list[str] = Query(default=[]),
+    ano:      list[int] = Query(default=[]),
     inventor: str | None = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(9999, ge=1, le=9999),
@@ -87,8 +86,8 @@ def listar_vitrine(
     _: dict = Depends(verificar_autenticacao),
 ):
     q = db.query(_VIT)
-    if tipo:     q = q.filter(_VIT.tipo == tipo.upper())
-    if ano:      q = q.filter(_VIT.ano == ano)
+    if tipo:     q = q.filter(or_(*[_VIT.tipo == t.upper() for t in tipo]))
+    if ano:      q = q.filter(_VIT.ano.in_(ano))
     if inventor: q = q.filter(_VIT.inventores.ilike(f"%{inventor}%"))
     return q.offset(skip).limit(limit).all()
 

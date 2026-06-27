@@ -32,14 +32,16 @@ function toOpts(arr = []) {
   return arr.map((v) => ({ value: String(v), label: String(v) }))
 }
 
+function fa(arr) { return arr.length > 0 ? arr : undefined }
+
 export default function EmpresasIncubadas() {
   const [kpis,               setKpis]               = useState({})
   const [opcoes,             setOpcoes]             = useState({})
   const [dadosPorIncubadora, setDadosPorIncubadora] = useState([])
   const [incubadas,          setIncubadas]          = useState([])
 
-  const [filtroIncubadora, setFiltroIncubadora] = useState('')
-  const [filtroSituacao,   setFiltroSituacao]   = useState('')
+  const [filtroIncubadora, setFiltroIncubadora] = useState([])
+  const [filtroSituacao,   setFiltroSituacao]   = useState([])
 
   const [loadingKpis,    setLoadingKpis]    = useState(true)
   const [loadingGrafico, setLoadingGrafico] = useState(true)
@@ -48,14 +50,17 @@ export default function EmpresasIncubadas() {
   const refGrafico = useRef(null)
 
   const filtrosAtivos = {
-    incubadora: filtroIncubadora || undefined,
-    situacao:   filtroSituacao   || undefined,
+    incubadora: fa(filtroIncubadora),
+    situacao:   fa(filtroSituacao),
   }
 
   useEffect(() => {
     getKPIsIncubadas().then(setKpis).catch(() => {}).finally(() => setLoadingKpis(false))
-    getFiltrosIncubadas().then(setOpcoes).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    getFiltrosIncubadas(filtrosAtivos).then(setOpcoes).catch(() => {})
+  }, [filtroIncubadora, filtroSituacao]) // eslint-disable-line
 
   useEffect(() => {
     setLoadingGrafico(true)
@@ -71,8 +76,8 @@ export default function EmpresasIncubadas() {
   }, [filtroIncubadora, filtroSituacao]) // eslint-disable-line
 
   function limparFiltros() {
-    setFiltroIncubadora('')
-    setFiltroSituacao('')
+    setFiltroIncubadora([])
+    setFiltroSituacao([])
   }
 
   const totalDonut = dadosPorIncubadora.reduce((s, d) => s + (d.total ?? 0), 0)

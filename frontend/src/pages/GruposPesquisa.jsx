@@ -27,6 +27,8 @@ function toOpts(arr = []) {
   return arr.map((v) => ({ value: String(v), label: String(v) }))
 }
 
+function fa(arr) { return arr.length > 0 ? arr : undefined }
+
 function CardGrupos({ valor, loading }) {
   if (loading) return <SkeletonCard />
   return (
@@ -44,9 +46,9 @@ export default function GruposPesquisa() {
   const [dadosPorArea, setDadosPorArea] = useState([])
   const [grupos,       setGrupos]       = useState([])
 
-  const [filtroNome, setFiltroNome] = useState('')
-  const [filtroArea, setFiltroArea] = useState('')
-  const [filtroAno,  setFiltroAno]  = useState('')
+  const [filtroNome, setFiltroNome] = useState([])
+  const [filtroArea, setFiltroArea] = useState([])
+  const [filtroAno,  setFiltroAno]  = useState([])
 
   const [loadingKpis,    setLoadingKpis]    = useState(true)
   const [loadingGrafico, setLoadingGrafico] = useState(true)
@@ -55,15 +57,18 @@ export default function GruposPesquisa() {
   const refGrafico = useRef(null)
 
   const filtrosAtivos = {
-    nome_grupo:        filtroNome || undefined,
-    area_predominante: filtroArea || undefined,
-    ultimo_envio:      filtroAno  || undefined,
+    nome_grupo:        fa(filtroNome),
+    area_predominante: fa(filtroArea),
+    ultimo_envio:      fa(filtroAno),
   }
 
   useEffect(() => {
     getKPIsGrupos().then(setKpis).catch(() => {}).finally(() => setLoadingKpis(false))
-    getFiltrosGrupos().then(setOpcoes).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    getFiltrosGrupos(filtrosAtivos).then(setOpcoes).catch(() => {})
+  }, [filtroNome, filtroArea, filtroAno]) // eslint-disable-line
 
   useEffect(() => {
     setLoadingGrafico(true)
@@ -82,9 +87,9 @@ export default function GruposPesquisa() {
   }, [filtroNome, filtroArea, filtroAno]) // eslint-disable-line
 
   function limparFiltros() {
-    setFiltroNome('')
-    setFiltroArea('')
-    setFiltroAno('')
+    setFiltroNome([])
+    setFiltroArea([])
+    setFiltroAno([])
   }
 
   return (

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.dependencies import get_db, verificar_autenticacao
@@ -9,10 +9,10 @@ router = APIRouter(prefix="/grupos", tags=["Grupos de Pesquisa"])
 _G = models.GrupoPesquisa
 
 
-def _filtrar_grupos(q, nome_grupo=None, area_predominante=None, ultimo_envio=None):
-    if nome_grupo:        q = q.filter(_G.nome_grupo.ilike(f"%{nome_grupo}%"))
-    if area_predominante: q = q.filter(_G.area_predominante.ilike(f"%{area_predominante}%"))
-    if ultimo_envio:      q = q.filter(_G.ultimo_envio.ilike(f"%/{ultimo_envio}"))
+def _filtrar_grupos(q, nomes=None, areas=None, anos_envio=None):
+    if nomes:      q = q.filter(or_(*[_G.nome_grupo.ilike(f"%{v}%") for v in nomes]))
+    if areas:      q = q.filter(or_(*[_G.area_predominante.ilike(f"%{v}%") for v in areas]))
+    if anos_envio: q = q.filter(or_(*[_G.ultimo_envio.ilike(f"%/{y}") for y in anos_envio]))
     return q
 
 
@@ -31,18 +31,29 @@ def grupos_kpis(
 
 @router.get("/filtros")
 def grupos_filtros(
+    nome_grupo:        list[str] = Query(default=[]),
+    area_predominante: list[str] = Query(default=[]),
+    ultimo_envio:      list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _unicos(col):
+    def _q(exc=None):
+        return _filtrar_grupos(
+            db.query(_G),
+            nomes=      nome_grupo        if exc != 'nome_grupo'        else None,
+            areas=      area_predominante if exc != 'area_predominante' else None,
+            anos_envio= ultimo_envio      if exc != 'ultimo_envio'      else None,
+        )
+
+    def _str_vals(col, campo):
         return sorted(
-            r[0] for r in db.query(col).filter(col != None).distinct().all()
+            r[0] for r in _q(campo).with_entities(col)
+            .filter(col != None).distinct().all()
         )
 
     datas = [
-        r[0] for r in db.query(_G.ultimo_envio)
-        .filter(_G.ultimo_envio != None)
-        .distinct().all()
+        r[0] for r in _q('ultimo_envio').with_entities(_G.ultimo_envio)
+        .filter(_G.ultimo_envio != None).distinct().all()
     ]
     anos_envio = sorted(
         {v[-4:] for v in datas if v and len(v) >= 4 and v[-4:].isdigit()},
@@ -50,17 +61,17 @@ def grupos_filtros(
     )
 
     return {
-        "nomes":      _unicos(_G.nome_grupo),
-        "areas":      _unicos(_G.area_predominante),
+        "nomes":      _str_vals(_G.nome_grupo,        'nome_grupo'),
+        "areas":      _str_vals(_G.area_predominante, 'area_predominante'),
         "anos_envio": anos_envio,
     }
 
 
 @router.get("/por-area")
 def grupos_por_area(
-    nome_grupo:        str | None = Query(None),
-    area_predominante: str | None = Query(None),
-    ultimo_envio:      str | None = Query(None),
+    nome_grupo:        list[str] = Query(default=[]),
+    area_predominante: list[str] = Query(default=[]),
+    ultimo_envio:      list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
@@ -77,17 +88,18 @@ def grupos_por_area(
 
 @router.get("", response_model=list[schemas.GrupoPesquisaOut])
 def listar_grupos(
-    nome_grupo:        str | None = Query(None),
-    area_predominante: str | None = Query(None),
-    ultimo_envio:      str | None = Query(None),
-    situacao:          str | None = Query(None),
+    nome_grupo:        list[str] = Query(default=[]),
+    area_predominante: list[str] = Query(default=[]),
+    ultimo_envio:      list[str] = Query(default=[]),
+    situacao:          list[str] = Query(default=[]),
     skip:  int = Query(0, ge=0),
     limit: int = Query(9999, ge=1, le=9999),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
     q = _filtrar_grupos(db.query(_G), nome_grupo, area_predominante, ultimo_envio)
-    if situacao: q = q.filter(_G.status.ilike(f"%{situacao}%"))
+    if situacao:
+        q = q.filter(or_(*[_G.status.ilike(f"%{s}%") for s in situacao]))
     return q.offset(skip).limit(limit).all()
 
 

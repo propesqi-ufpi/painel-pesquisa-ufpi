@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.dependencies import get_db, verificar_autenticacao
@@ -9,9 +9,9 @@ router = APIRouter(prefix="/laboratorios", tags=["Laboratórios"])
 _L = models.Laboratorio
 
 
-def _filtrar_laboratorios(q, nome=None, centro_campi=None):
-    if nome:        q = q.filter(_L.nome.ilike(f"%{nome}%"))
-    if centro_campi: q = q.filter(_L.centro_campi.ilike(f"%{centro_campi}%"))
+def _filtrar_laboratorios(q, nomes=None, centros=None):
+    if nomes:   q = q.filter(or_(*[_L.nome.ilike(f"%{v}%") for v in nomes]))
+    if centros: q = q.filter(or_(*[_L.centro_campi.ilike(f"%{v}%") for v in centros]))
     return q
 
 
@@ -30,24 +30,34 @@ def laboratorios_kpis(
 
 @router.get("/filtros")
 def laboratorios_filtros(
+    nome:        list[str] = Query(default=[]),
+    centro_campi: list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _unicos(col):
+    def _q(exc=None):
+        return _filtrar_laboratorios(
+            db.query(_L),
+            nomes=   nome        if exc != 'nome'        else None,
+            centros= centro_campi if exc != 'centro_campi' else None,
+        )
+
+    def _vals(col, campo):
         return sorted(
-            r[0] for r in db.query(col).filter(col != None).distinct().all()
+            r[0] for r in _q(campo).with_entities(col)
+            .filter(col != None).distinct().all()
         )
 
     return {
-        "nomes":   _unicos(_L.nome),
-        "centros": _unicos(_L.centro_campi),
+        "nomes":   _vals(_L.nome,        'nome'),
+        "centros": _vals(_L.centro_campi, 'centro_campi'),
     }
 
 
 @router.get("/por-centro")
 def laboratorios_por_centro(
-    nome:        str | None = Query(None),
-    centro_campi: str | None = Query(None),
+    nome:        list[str] = Query(default=[]),
+    centro_campi: list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
@@ -60,8 +70,8 @@ def laboratorios_por_centro(
 
 @router.get("", response_model=list[schemas.LaboratorioOut])
 def listar_laboratorios(
-    nome:        str | None = Query(None),
-    centro_campi: str | None = Query(None),
+    nome:        list[str] = Query(default=[]),
+    centro_campi: list[str] = Query(default=[]),
     skip:  int = Query(0, ge=0),
     limit: int = Query(9999, ge=1, le=9999),
     db: Session = Depends(get_db),

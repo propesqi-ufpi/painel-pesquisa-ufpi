@@ -21,6 +21,8 @@ function toOpts(arr = []) {
   return arr.map((v) => ({ value: String(v), label: String(v) }))
 }
 
+function fa(arr) { return arr.length > 0 ? arr : undefined }
+
 function CardGrande({ titulo, valor, loading }) {
   if (loading) return <SkeletonCard />
   return (
@@ -36,39 +38,44 @@ export default function Bolsistas() {
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCampus, setDadosPorCampus] = useState([])
 
-  const [filtroModalidade, setFiltroModalidade] = useState('')
-  const [filtroOrgao,      setFiltroOrgao]      = useState('')
-  const [filtroCentro,     setFiltroCentro]     = useState('')
-  const [filtroNome,       setFiltroNome]       = useState('')
+  const [filtroModalidade, setFiltroModalidade] = useState([])
+  const [filtroOrgao,      setFiltroOrgao]      = useState([])
+  const [filtroCentro,     setFiltroCentro]     = useState([])
+  const [filtroNome,       setFiltroNome]       = useState([])
 
   const [loadingKpis,    setLoadingKpis]    = useState(true)
   const [loadingGrafico, setLoadingGrafico] = useState(true)
 
   const refGrafico = useRef(null)
 
+  const filtrosAtivos = {
+    modalidade:    fa(filtroModalidade),
+    orgao:         fa(filtroOrgao),
+    campus_centro: fa(filtroCentro),
+    nome:          fa(filtroNome),
+  }
+
   useEffect(() => {
     getKPIsBolsistas().then(setKpis).catch(() => {}).finally(() => setLoadingKpis(false))
-    getFiltrosBolsistas().then(setOpcoes).catch(() => {})
   }, [])
 
   useEffect(() => {
+    getFiltrosBolsistas(filtrosAtivos).then(setOpcoes).catch(() => {})
+  }, [filtroModalidade, filtroOrgao, filtroCentro, filtroNome]) // eslint-disable-line
+
+  useEffect(() => {
     setLoadingGrafico(true)
-    getBolsistasPorCampus({
-      modalidade:    filtroModalidade || undefined,
-      orgao:         filtroOrgao      || undefined,
-      campus_centro: filtroCentro     || undefined,
-      nome:          filtroNome       || undefined,
-    })
+    getBolsistasPorCampus(filtrosAtivos)
       .then(setDadosPorCampus)
       .catch(() => {})
       .finally(() => setLoadingGrafico(false))
-  }, [filtroModalidade, filtroOrgao, filtroCentro, filtroNome])
+  }, [filtroModalidade, filtroOrgao, filtroCentro, filtroNome]) // eslint-disable-line
 
   function limparFiltros() {
-    setFiltroModalidade('')
-    setFiltroOrgao('')
-    setFiltroCentro('')
-    setFiltroNome('')
+    setFiltroModalidade([])
+    setFiltroOrgao([])
+    setFiltroCentro([])
+    setFiltroNome([])
   }
 
   const totalCampus = dadosPorCampus.reduce((s, d) => s + (d.total ?? 0), 0)

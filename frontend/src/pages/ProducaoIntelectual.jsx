@@ -31,14 +31,16 @@ const COLUNAS_VITRINE = [
   { key: 'descricao',  label: 'DESCRIÇÃO' },
 ]
 
+function fa(arr) { return arr.length > 0 ? arr : undefined }
+
 export default function ProducaoIntelectual() {
   const [kpis, setKpis] = useState({})
   const [tiposDisponiveis, setTiposDisponiveis] = useState([])
   const [anosDisponiveis,  setAnosDisponiveis]  = useState([])
 
   const [filtroInventor, setFiltroInventor] = useState('')
-  const [filtroAno,      setFiltroAno]      = useState('')
-  const [filtroTipo,     setFiltroTipo]     = useState('')
+  const [filtroAno,      setFiltroAno]      = useState([])
+  const [filtroTipo,     setFiltroTipo]     = useState([])
 
   const [dadosPatentes,  setDadosPatentes]  = useState([])
   const [dadosSoftwares, setDadosSoftwares] = useState([])
@@ -59,7 +61,7 @@ export default function ProducaoIntelectual() {
 
   useEffect(() => {
     setLoadingGraficos(true)
-    const params = filtroAno ? { ano: filtroAno } : {}
+    const params = fa(filtroAno) ? { ano: filtroAno } : {}
     Promise.all([
       getProducaoAnual({ tipo: 'PATENTE', ...params }),
       getProducaoAnual({ tipo: 'SOFTWARE', ...params }),
@@ -67,13 +69,13 @@ export default function ProducaoIntelectual() {
       .then(([patentes, softwares]) => { setDadosPatentes(patentes); setDadosSoftwares(softwares) })
       .catch(() => {})
       .finally(() => setLoadingGraficos(false))
-  }, [filtroAno])
+  }, [filtroAno]) // eslint-disable-line
 
   useEffect(() => {
     setLoadingVitrine(true)
     getVitrine({
-      tipo:     filtroTipo     || undefined,
-      ano:      filtroAno      || undefined,
+      tipo:     fa(filtroTipo),
+      ano:      fa(filtroAno),
       inventor: filtroInventor || undefined,
       limit:    9999,
     })
@@ -84,8 +86,8 @@ export default function ProducaoIntelectual() {
 
   function limparFiltros() {
     setFiltroInventor('')
-    setFiltroAno('')
-    setFiltroTipo('')
+    setFiltroAno([])
+    setFiltroTipo([])
   }
 
   const totalSoftwares = dadosSoftwares.reduce((s, d) => s + (d.depositadas ?? 0), 0)

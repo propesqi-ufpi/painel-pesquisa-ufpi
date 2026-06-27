@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from app import models, schemas
 from app.dependencies import get_db, verificar_autenticacao
@@ -9,12 +9,12 @@ router = APIRouter(prefix="/pos-graduacao", tags=["Pós-Graduação"])
 _P = models.PosGraduacao
 
 
-def _filtrar_pos(q, programa=None, conceito_capes=None, centro=None, nivel=None, tipo=None):
-    if programa:       q = q.filter(_P.programa.ilike(f"%{programa}%"))
-    if conceito_capes: q = q.filter(_P.conceito_capes == conceito_capes)
-    if centro:         q = q.filter(_P.centro.ilike(f"%{centro}%"))
-    if nivel:          q = q.filter(_P.nivel.ilike(f"%{nivel}%"))
-    if tipo:           q = q.filter(_P.tipo.ilike(f"%{tipo}%"))
+def _filtrar_pos(q, programas=None, conceitos=None, centros=None, niveis=None, tipos=None):
+    if programas:  q = q.filter(or_(*[_P.programa.ilike(f"%{v}%") for v in programas]))
+    if conceitos:  q = q.filter(_P.conceito_capes.in_(conceitos))
+    if centros:    q = q.filter(or_(*[_P.centro.ilike(f"%{v}%") for v in centros]))
+    if niveis:     q = q.filter(or_(*[_P.nivel.ilike(f"%{v}%") for v in niveis]))
+    if tipos:      q = q.filter(or_(*[_P.tipo.ilike(f"%{v}%") for v in tipos]))
     return q
 
 
@@ -33,33 +33,49 @@ def pos_kpis(
 
 @router.get("/filtros")
 def pos_filtros(
+    programa:       list[str] = Query(default=[]),
+    conceito_capes: list[int] = Query(default=[]),
+    centro:         list[str] = Query(default=[]),
+    nivel:          list[str] = Query(default=[]),
+    tipo:           list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _str(col):
+    def _q(exc=None):
+        return _filtrar_pos(
+            db.query(_P),
+            programas= programa       if exc != 'programa'       else None,
+            conceitos= conceito_capes if exc != 'conceito_capes' else None,
+            centros=   centro         if exc != 'centro'         else None,
+            niveis=    nivel          if exc != 'nivel'          else None,
+            tipos=     tipo           if exc != 'tipo'           else None,
+        )
+
+    def _str_vals(col, campo):
         return sorted(
-            r[0] for r in db.query(col).filter(col != None).distinct().all()
+            r[0] for r in _q(campo).with_entities(col)
+            .filter(col != None).distinct().all()
         )
 
     return {
-        "programas":       _str(_P.programa),
+        "programas":       _str_vals(_P.programa, 'programa'),
         "conceitos_capes": sorted(
-            r[0]
-            for r in db.query(_P.conceito_capes).filter(_P.conceito_capes != None).distinct().all()
+            r[0] for r in _q('conceito_capes').with_entities(_P.conceito_capes)
+            .filter(_P.conceito_capes != None).distinct().all()
         ),
-        "centros":         _str(_P.centro),
-        "niveis":          _str(_P.nivel),
-        "tipos":           _str(_P.tipo),
+        "centros": _str_vals(_P.centro, 'centro'),
+        "niveis":  _str_vals(_P.nivel,  'nivel'),
+        "tipos":   _str_vals(_P.tipo,   'tipo'),
     }
 
 
 @router.get("/por-centro")
 def pos_por_centro(
-    programa:       str | None = Query(None),
-    conceito_capes: int | None = Query(None),
-    centro:         str | None = Query(None),
-    nivel:          str | None = Query(None),
-    tipo:           str | None = Query(None),
+    programa:       list[str] = Query(default=[]),
+    conceito_capes: list[int] = Query(default=[]),
+    centro:         list[str] = Query(default=[]),
+    nivel:          list[str] = Query(default=[]),
+    tipo:           list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
@@ -72,11 +88,11 @@ def pos_por_centro(
 
 @router.get("", response_model=list[schemas.PosGraduacaoOut])
 def listar_pos(
-    programa:       str | None = Query(None),
-    conceito_capes: int | None = Query(None),
-    centro:         str | None = Query(None),
-    nivel:          str | None = Query(None),
-    tipo:           str | None = Query(None),
+    programa:       list[str] = Query(default=[]),
+    conceito_capes: list[int] = Query(default=[]),
+    centro:         list[str] = Query(default=[]),
+    nivel:          list[str] = Query(default=[]),
+    tipo:           list[str] = Query(default=[]),
     skip:  int = Query(0, ge=0),
     limit: int = Query(9999, ge=1, le=9999),
     db: Session = Depends(get_db),
