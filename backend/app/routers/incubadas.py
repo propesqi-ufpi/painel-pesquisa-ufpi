@@ -49,18 +49,13 @@ def incubadas_filtros(
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _q(exc=None):
-        return _filtrar_incubadas(
-            db.query(_E),
-            incubadoras= incubadora if exc != 'incubadora' else None,
-            situacoes=   situacao   if exc != 'situacao'   else None,
-        )
+    def _apply(q, exc=None):
+        if exc != 'incubadora' and incubadora: q = q.filter(or_(*[_E.incubadora.ilike(f"%{v}%") for v in incubadora]))
+        if exc != 'situacao'   and situacao:   q = q.filter(or_(*[_E.tipo_empresa.ilike(f"%{v}%") for v in situacao]))
+        return q
 
     def _vals(col, campo):
-        return sorted(
-            r[0] for r in _q(campo).with_entities(col)
-            .filter(col != None).distinct().all()
-        )
+        return sorted(r[0] for r in _apply(db.query(col), campo).filter(col != None).distinct().all())
 
     return {
         "incubadoras": _vals(_E.incubadora,   'incubadora'),

@@ -35,18 +35,13 @@ def laboratorios_filtros(
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _q(exc=None):
-        return _filtrar_laboratorios(
-            db.query(_L),
-            nomes=   nome        if exc != 'nome'        else None,
-            centros= centro_campi if exc != 'centro_campi' else None,
-        )
+    def _apply(q, exc=None):
+        if exc != 'nome'         and nome:         q = q.filter(or_(*[_L.nome.ilike(f"%{v}%") for v in nome]))
+        if exc != 'centro_campi' and centro_campi: q = q.filter(or_(*[_L.centro_campi.ilike(f"%{v}%") for v in centro_campi]))
+        return q
 
     def _vals(col, campo):
-        return sorted(
-            r[0] for r in _q(campo).with_entities(col)
-            .filter(col != None).distinct().all()
-        )
+        return sorted(r[0] for r in _apply(db.query(col), campo).filter(col != None).distinct().all())
 
     return {
         "nomes":   _vals(_L.nome,        'nome'),

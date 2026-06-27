@@ -51,28 +51,20 @@ def pdi_filtros(
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _q(exc=None):
-        return _filtrar_pdi(
-            db.query(_PDI),
-            anos_inicio=  ano_inicio  if exc != 'ano_inicio'  else None,
-            anos_termino= ano_termino if exc != 'ano_termino' else None,
-            centros=      centro      if exc != 'centro'      else None,
-            naturezas=    natureza    if exc != 'natureza'    else None,
-            areas=        area        if exc != 'area'        else None,
-            situacoes=    situacao    if exc != 'situacao'    else None,
-        )
+    def _apply(q, exc=None):
+        if exc != 'ano_inicio'  and ano_inicio:  q = q.filter(_PDI.ano_inicio.in_(ano_inicio))
+        if exc != 'ano_termino' and ano_termino: q = q.filter(_PDI.ano_fim.in_(ano_termino))
+        if exc != 'centro'      and centro:      q = q.filter(or_(*[_PDI.centro.ilike(f"%{c}%") for c in centro]))
+        if exc != 'natureza'    and natureza:    q = q.filter(or_(*[_PDI.natureza.ilike(f"%{n}%") for n in natureza]))
+        if exc != 'area'        and area:        q = q.filter(or_(*[_PDI.area.ilike(f"%{a}%") for a in area]))
+        if exc != 'situacao'    and situacao:    q = q.filter(or_(*[_PDI.situacao.ilike(f"%{s}%") for s in situacao]))
+        return q
 
     def _str_vals(col, campo):
-        return sorted(
-            r[0] for r in _q(campo).with_entities(col)
-            .filter(col != None, col != "--").distinct().all()
-        )
+        return sorted(r[0] for r in _apply(db.query(col), campo).filter(col != None, col != "--").distinct().all())
 
     def _int_vals(col, campo):
-        return sorted(
-            r[0] for r in _q(campo).with_entities(col)
-            .filter(col != None).distinct().all()
-        )
+        return sorted(r[0] for r in _apply(db.query(col), campo).filter(col != None).distinct().all())
 
     return {
         "anos_inicio":  _int_vals(_PDI.ano_inicio, 'ano_inicio'),

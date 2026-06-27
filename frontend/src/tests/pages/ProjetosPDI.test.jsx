@@ -88,9 +88,7 @@ describe('ProjetosPDI', () => {
   it('filtros de situação são carregados', async () => {
     renderPage()
     await waitFor(() => {
-      const selects = screen.getAllByRole('combobox')
-      const situacaoSelect = selects[selects.length - 2]
-      expect(situacaoSelect).toBeInTheDocument()
+      expect(screen.getByText('Situação')).toBeInTheDocument()
     })
   })
 

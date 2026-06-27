@@ -41,28 +41,20 @@ def pos_filtros(
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _q(exc=None):
-        return _filtrar_pos(
-            db.query(_P),
-            programas= programa       if exc != 'programa'       else None,
-            conceitos= conceito_capes if exc != 'conceito_capes' else None,
-            centros=   centro         if exc != 'centro'         else None,
-            niveis=    nivel          if exc != 'nivel'          else None,
-            tipos=     tipo           if exc != 'tipo'           else None,
-        )
+    def _apply(q, exc=None):
+        if exc != 'programa'       and programa:       q = q.filter(or_(*[_P.programa.ilike(f"%{v}%") for v in programa]))
+        if exc != 'conceito_capes' and conceito_capes: q = q.filter(_P.conceito_capes.in_(conceito_capes))
+        if exc != 'centro'         and centro:         q = q.filter(or_(*[_P.centro.ilike(f"%{v}%") for v in centro]))
+        if exc != 'nivel'          and nivel:          q = q.filter(or_(*[_P.nivel.ilike(f"%{v}%") for v in nivel]))
+        if exc != 'tipo'           and tipo:           q = q.filter(or_(*[_P.tipo.ilike(f"%{v}%") for v in tipo]))
+        return q
 
     def _str_vals(col, campo):
-        return sorted(
-            r[0] for r in _q(campo).with_entities(col)
-            .filter(col != None).distinct().all()
-        )
+        return sorted(r[0] for r in _apply(db.query(col), campo).filter(col != None).distinct().all())
 
     return {
         "programas":       _str_vals(_P.programa, 'programa'),
-        "conceitos_capes": sorted(
-            r[0] for r in _q('conceito_capes').with_entities(_P.conceito_capes)
-            .filter(_P.conceito_capes != None).distinct().all()
-        ),
+        "conceitos_capes": sorted(r[0] for r in _apply(db.query(_P.conceito_capes), 'conceito_capes').filter(_P.conceito_capes != None).distinct().all()),
         "centros": _str_vals(_P.centro, 'centro'),
         "niveis":  _str_vals(_P.nivel,  'nivel'),
         "tipos":   _str_vals(_P.tipo,   'tipo'),

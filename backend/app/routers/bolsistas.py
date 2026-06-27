@@ -45,20 +45,15 @@ def bolsistas_filtros(
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _q(exc=None):
-        return _filtrar_bolsistas(
-            db.query(_B),
-            modalidades= modalidade    if exc != 'modalidade'    else None,
-            orgaos=      orgao         if exc != 'orgao'         else None,
-            campi=       campus_centro if exc != 'campus_centro' else None,
-            nomes=       nome          if exc != 'nome'          else None,
-        )
+    def _apply(q, exc=None):
+        if exc != 'modalidade'    and modalidade:    q = q.filter(or_(*[_B.modalidade.ilike(f"%{v}%") for v in modalidade]))
+        if exc != 'orgao'         and orgao:         q = q.filter(or_(*[_B.orgao.ilike(f"%{v}%") for v in orgao]))
+        if exc != 'campus_centro' and campus_centro: q = q.filter(or_(*[_B.campus_centro.ilike(f"%{v}%") for v in campus_centro]))
+        if exc != 'nome'          and nome:          q = q.filter(or_(*[_B.nome.ilike(f"%{v}%") for v in nome]))
+        return q
 
     def _vals(col, campo):
-        return sorted(
-            r[0] for r in _q(campo).with_entities(col)
-            .filter(col != None).distinct().all()
-        )
+        return sorted(r[0] for r in _apply(db.query(col), campo).filter(col != None).distinct().all())
 
     return {
         "modalidades": _vals(_B.modalidade,    'modalidade'),

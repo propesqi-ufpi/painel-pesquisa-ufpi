@@ -49,35 +49,24 @@ def nucleos_filtros(
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _q(exc=None):
-        return _filtrar_nucleos(
-            db.query(_N),
-            centros=      centro_campus if exc != 'centro_campus' else None,
-            vinculacoes=  vinculacao    if exc != 'vinculacao'    else None,
-            anos=         ano_resolucao if exc != 'ano_resolucao' else None,
-            denominacoes= denominacao   if exc != 'denominacao'   else None,
-        )
+    def _apply(q, exc=None):
+        if exc != 'centro_campus' and centro_campus: q = q.filter(or_(*[_N.centro_campus.ilike(f"%{v}%") for v in centro_campus]))
+        if exc != 'vinculacao'    and vinculacao:    q = q.filter(or_(*[_N.vinculacao.ilike(f"%{v}%") for v in vinculacao]))
+        if exc != 'ano_resolucao' and ano_resolucao: q = q.filter(_N.ano_resolucao.in_(ano_resolucao))
+        if exc != 'denominacao'   and denominacao:   q = q.filter(or_(*[_N.denominacao.ilike(f"%{v}%") for v in denominacao]))
+        return q
 
-    def _str_vals(col, campo):
-        return sorted(
-            r[0] for r in _q(campo).with_entities(col)
-            .filter(col != None).distinct().all()
-        )
-
-    def _str_vals_sem_dash(col, campo):
-        return sorted(
-            r[0] for r in _q(campo).with_entities(col)
-            .filter(col != None, col != "--").distinct().all()
-        )
+    def _str_vals(col, campo, excl_dash=False):
+        q = _apply(db.query(col), campo).filter(col != None)
+        if excl_dash:
+            q = q.filter(col != "--")
+        return sorted(r[0] for r in q.distinct().all())
 
     return {
-        "centros":     _str_vals_sem_dash(_N.centro_campus,  'centro_campus'),
+        "centros":     _str_vals(_N.centro_campus, 'centro_campus', excl_dash=True),
         "vinculacoes": _str_vals(_N.vinculacao,    'vinculacao'),
-        "anos":        sorted(
-            r[0] for r in _q('ano_resolucao').with_entities(_N.ano_resolucao)
-            .filter(_N.ano_resolucao != None).distinct().all()
-        ),
-        "nucleos":     _str_vals(_N.denominacao, 'denominacao'),
+        "anos":        sorted(r[0] for r in _apply(db.query(_N.ano_resolucao), 'ano_resolucao').filter(_N.ano_resolucao != None).distinct().all()),
+        "nucleos":     _str_vals(_N.denominacao,   'denominacao'),
     }
 
 

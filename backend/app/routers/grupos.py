@@ -37,24 +37,16 @@ def grupos_filtros(
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    def _q(exc=None):
-        return _filtrar_grupos(
-            db.query(_G),
-            nomes=      nome_grupo        if exc != 'nome_grupo'        else None,
-            areas=      area_predominante if exc != 'area_predominante' else None,
-            anos_envio= ultimo_envio      if exc != 'ultimo_envio'      else None,
-        )
+    def _apply(q, exc=None):
+        if exc != 'nome_grupo'        and nome_grupo:        q = q.filter(or_(*[_G.nome_grupo.ilike(f"%{v}%") for v in nome_grupo]))
+        if exc != 'area_predominante' and area_predominante: q = q.filter(or_(*[_G.area_predominante.ilike(f"%{v}%") for v in area_predominante]))
+        if exc != 'ultimo_envio'      and ultimo_envio:      q = q.filter(or_(*[_G.ultimo_envio.ilike(f"%/{y}") for y in ultimo_envio]))
+        return q
 
     def _str_vals(col, campo):
-        return sorted(
-            r[0] for r in _q(campo).with_entities(col)
-            .filter(col != None).distinct().all()
-        )
+        return sorted(r[0] for r in _apply(db.query(col), campo).filter(col != None).distinct().all())
 
-    datas = [
-        r[0] for r in _q('ultimo_envio').with_entities(_G.ultimo_envio)
-        .filter(_G.ultimo_envio != None).distinct().all()
-    ]
+    datas = [r[0] for r in _apply(db.query(_G.ultimo_envio), 'ultimo_envio').filter(_G.ultimo_envio != None).distinct().all()]
     anos_envio = sorted(
         {v[-4:] for v in datas if v and len(v) >= 4 and v[-4:].isdigit()},
         reverse=True,
