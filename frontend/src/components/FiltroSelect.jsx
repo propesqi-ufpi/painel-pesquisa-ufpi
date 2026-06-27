@@ -60,22 +60,36 @@ export default function FiltroSelect({
           {options.length === 0 ? (
             <div className="px-2 py-1.5 text-xs text-gray-400">Sem opções</div>
           ) : (
-            options.map((opt) => (
-              <label
-                key={opt.value}
-                className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
-              >
+            <>
+              <label className="flex items-center gap-2 px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={value.includes(opt.value)}
-                  onChange={() => toggle(opt.value)}
+                  checked={value.length === options.length}
+                  onChange={() => {
+                    if (value.length === options.length) onChange([])
+                    else onChange(options.map((o) => o.value))
+                  }}
                   className="accent-azul-medio w-3 h-3 flex-shrink-0"
                 />
-                <span className="text-xs text-gray-700 dark:text-gray-300 truncate">
-                  {opt.label}
-                </span>
+                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">Selecionar todos</span>
               </label>
-            ))
+              {options.map((opt) => (
+                <label
+                  key={opt.value}
+                  className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={value.includes(opt.value)}
+                    onChange={() => toggle(opt.value)}
+                    className="accent-azul-medio w-3 h-3 flex-shrink-0"
+                  />
+                  <span className="text-xs text-gray-700 dark:text-gray-300 truncate">
+                    {opt.label}
+                  </span>
+                </label>
+              ))}
+            </>
           )}
         </div>
       )}

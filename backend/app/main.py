@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from app.routers import projetos, dashboard, auth, finep, producao, bolsistas, nucleos, grupos, incubadas, pos_graduacao, laboratorios
 
 app = FastAPI(
@@ -15,6 +16,13 @@ _raw_origins = os.getenv(
 )
 _allowed_origins = [o.strip() for o in _raw_origins.split(",")]
 
+class NoCacheMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
+app.add_middleware(NoCacheMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,

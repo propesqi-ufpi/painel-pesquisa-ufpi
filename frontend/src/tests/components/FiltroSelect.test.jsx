@@ -8,47 +8,63 @@ const options = [
 
 describe('FiltroSelect', () => {
   it('renderiza o label', () => {
-    render(<FiltroSelect label="Centro" value="" onChange={() => {}} options={options} />)
+    render(<FiltroSelect label="Centro" value={[]} onChange={() => {}} options={options} />)
     expect(screen.getByText('Centro')).toBeInTheDocument()
   })
 
-  it('sempre inclui a opção "Todos"', () => {
-    render(<FiltroSelect label="X" value="" onChange={() => {}} options={options} />)
-    expect(screen.getByRole('option', { name: 'Todos' })).toBeInTheDocument()
+  it('mostra "Todos" no botão quando nenhuma opção está selecionada', () => {
+    render(<FiltroSelect label="X" value={[]} onChange={() => {}} options={options} />)
+    expect(screen.getByRole('button', { name: /todos/i })).toBeInTheDocument()
   })
 
-  it('renderiza todas as opções passadas', () => {
-    render(<FiltroSelect label="X" value="" onChange={() => {}} options={options} />)
-    expect(screen.getByRole('option', { name: 'Opção A' })).toBeInTheDocument()
-    expect(screen.getByRole('option', { name: 'Opção B' })).toBeInTheDocument()
+  it('abre o dropdown e exibe as opções ao clicar no botão', () => {
+    render(<FiltroSelect label="X" value={[]} onChange={() => {}} options={options} />)
+    fireEvent.click(screen.getByRole('button'))
+    expect(screen.getByText('Opção A')).toBeInTheDocument()
+    expect(screen.getByText('Opção B')).toBeInTheDocument()
   })
 
-  it('chama onChange com o valor selecionado', () => {
+  it('exibe "Selecionar todos" no dropdown quando há opções', () => {
+    render(<FiltroSelect label="X" value={[]} onChange={() => {}} options={options} />)
+    fireEvent.click(screen.getByRole('button'))
+    expect(screen.getByText('Selecionar todos')).toBeInTheDocument()
+  })
+
+  it('chama onChange com array ao clicar em uma opção', () => {
     const onChange = vi.fn()
-    render(<FiltroSelect label="X" value="" onChange={onChange} options={options} />)
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'a' } })
-    expect(onChange).toHaveBeenCalledWith('a')
+    render(<FiltroSelect label="X" value={[]} onChange={onChange} options={options} />)
+    fireEvent.click(screen.getByRole('button'))
+    fireEvent.click(screen.getByLabelText('Opção A'))
+    expect(onChange).toHaveBeenCalledWith(['a'])
   })
 
-  it('desabilita o select quando disabled=true', () => {
-    render(<FiltroSelect label="X" value="" onChange={() => {}} options={options} disabled />)
-    expect(screen.getByRole('combobox')).toBeDisabled()
+  it('chama onChange com todas as opções ao clicar em "Selecionar todos"', () => {
+    const onChange = vi.fn()
+    render(<FiltroSelect label="X" value={[]} onChange={onChange} options={options} />)
+    fireEvent.click(screen.getByRole('button'))
+    fireEvent.click(screen.getByLabelText('Selecionar todos'))
+    expect(onChange).toHaveBeenCalledWith(['a', 'b'])
+  })
+
+  it('desabilita o botão quando disabled=true', () => {
+    render(<FiltroSelect label="X" value={[]} onChange={() => {}} options={options} disabled />)
+    expect(screen.getByRole('button')).toBeDisabled()
   })
 
   it('não renderiza label quando prop não é passada', () => {
     const { container } = render(
-      <FiltroSelect value="" onChange={() => {}} options={[]} />
+      <FiltroSelect value={[]} onChange={() => {}} options={[]} />
     )
     expect(container.querySelector('label')).toBeNull()
   })
 
-  it('renderiza sem opções além de "Todos"', () => {
-    render(<FiltroSelect label="X" value="" onChange={() => {}} options={[]} />)
-    expect(screen.getAllByRole('option')).toHaveLength(1)
+  it('mostra o label da opção quando exatamente uma está selecionada', () => {
+    render(<FiltroSelect label="X" value={['b']} onChange={() => {}} options={options} />)
+    expect(screen.getByRole('button', { name: /opção b/i })).toBeInTheDocument()
   })
 
-  it('reflete o value controlado', () => {
-    render(<FiltroSelect label="X" value="b" onChange={() => {}} options={options} />)
-    expect(screen.getByRole('combobox').value).toBe('b')
+  it('mostra "N selecionados" quando mais de uma opção está selecionada', () => {
+    render(<FiltroSelect label="X" value={['a', 'b']} onChange={() => {}} options={options} />)
+    expect(screen.getByRole('button', { name: /2 selecionados/i })).toBeInTheDocument()
   })
 })
