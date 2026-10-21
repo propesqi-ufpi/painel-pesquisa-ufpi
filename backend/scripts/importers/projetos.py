@@ -13,6 +13,9 @@ def importar_projetos_finep(caminho_xlsx: str, db: Session):
         print(f"[Erro] Falha ao ler Projetos FINEP: {e}")
         return
 
+    # Linhas sem título (ex.: linha de total no fim da planilha) não são projetos
+    df = df.dropna(subset=["projeto"])
+
     inseridos, erros = 0, []
     for idx, row in df.iterrows():
         try:
