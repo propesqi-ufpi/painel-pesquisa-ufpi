@@ -44,7 +44,7 @@ app.include_router(pos_graduacao.router)
 app.include_router(laboratorios.router)
 
 
-@app.get("/health", tags=["Sistema"])
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["Sistema"])
 def health_check():
     """Verifica se a API está no ar."""
     return {"status": "ok", "versao": "1.0.0"}
