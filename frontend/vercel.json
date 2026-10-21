@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://painel-pesquisa-ufpi.onrender.com/:path*"
+      "destination": "https://painel-pesquisa-ufpi-i5uv.onrender.com/:path*"
     },
     {
       "source": "/(.*)",
