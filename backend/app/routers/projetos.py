@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app import models, schemas
+from app.filtros import em_lista
 from app.dependencies import get_db, verificar_autenticacao
 
 router = APIRouter(prefix="/projetos", tags=["Projetos"])
@@ -13,10 +14,10 @@ def _filtrar_pdi(q, anos_inicio=None, anos_termino=None, centros=None,
                  naturezas=None, areas=None, situacoes=None):
     if anos_inicio:  q = q.filter(_PDI.ano_inicio.in_(anos_inicio))
     if anos_termino: q = q.filter(_PDI.ano_fim.in_(anos_termino))
-    if centros:      q = q.filter(or_(*[_PDI.centro.ilike(f"%{c}%") for c in centros]))
-    if naturezas:    q = q.filter(or_(*[_PDI.natureza.ilike(f"%{n}%") for n in naturezas]))
-    if areas:        q = q.filter(or_(*[_PDI.area.ilike(f"%{a}%") for a in areas]))
-    if situacoes:    q = q.filter(or_(*[_PDI.situacao.ilike(f"%{s}%") for s in situacoes]))
+    if centros:      q = q.filter(em_lista(_PDI.centro, centros))
+    if naturezas:    q = q.filter(em_lista(_PDI.natureza, naturezas))
+    if areas:        q = q.filter(em_lista(_PDI.area, areas))
+    if situacoes:    q = q.filter(em_lista(_PDI.situacao, situacoes))
     return q
 
 
@@ -54,10 +55,10 @@ def pdi_filtros(
     def _apply(q, exc=None):
         if exc != 'ano_inicio'  and ano_inicio:  q = q.filter(_PDI.ano_inicio.in_(ano_inicio))
         if exc != 'ano_termino' and ano_termino: q = q.filter(_PDI.ano_fim.in_(ano_termino))
-        if exc != 'centro'      and centro:      q = q.filter(or_(*[_PDI.centro.ilike(f"%{c}%") for c in centro]))
-        if exc != 'natureza'    and natureza:    q = q.filter(or_(*[_PDI.natureza.ilike(f"%{n}%") for n in natureza]))
-        if exc != 'area'        and area:        q = q.filter(or_(*[_PDI.area.ilike(f"%{a}%") for a in area]))
-        if exc != 'situacao'    and situacao:    q = q.filter(or_(*[_PDI.situacao.ilike(f"%{s}%") for s in situacao]))
+        if exc != 'centro'      and centro:      q = q.filter(em_lista(_PDI.centro, centro))
+        if exc != 'natureza'    and natureza:    q = q.filter(em_lista(_PDI.natureza, natureza))
+        if exc != 'area'        and area:        q = q.filter(em_lista(_PDI.area, area))
+        if exc != 'situacao'    and situacao:    q = q.filter(em_lista(_PDI.situacao, situacao))
         return q
 
     def _str_vals(col, campo):
