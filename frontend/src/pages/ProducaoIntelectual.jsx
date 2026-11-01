@@ -147,7 +147,7 @@ export default function ProducaoIntelectual() {
                     <XAxis stroke={cores.grade} type="number" tick={{ fontSize: 10, fill: cores.eixo }} />
                     <YAxis stroke={cores.grade} type="category" dataKey="ano" width={44} tick={{ fontSize: 10, fill: cores.eixo }} />
                     <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico />} />
-                    <Bar dataKey="depositadas" fill={cores.serie1} radius={[0, 3, 3, 0]} shape={barraClicavel({ categoria: 'ano', selecionados: filtroAno, onAlternar: alternarAno })} />
+                    <Bar dataKey="depositadas" name="Depositadas" fill={cores.serie1} radius={[0, 3, 3, 0]} shape={barraClicavel({ categoria: 'ano', selecionados: filtroAno, onAlternar: alternarAno })} />
                   </BarChart>
                 </ResponsiveContainer>
               )}

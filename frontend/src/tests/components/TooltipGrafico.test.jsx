@@ -28,14 +28,15 @@ describe('TooltipGrafico', () => {
   it('renderiza label e valor quando active', () => {
     render(<TooltipGrafico active={true} payload={payload} label="2023" />)
     expect(screen.getByText('2023')).toBeInTheDocument()
-    expect(screen.getByText(/Total: 50/)).toBeInTheDocument()
+    expect(screen.getByText('Total:')).toBeInTheDocument()
+    expect(screen.getByText('50')).toBeInTheDocument()
   })
 
   it('exibe percentual quando total é passado', () => {
     render(
       <TooltipGrafico active={true} payload={payload} label="X" total={100} />
     )
-    expect(screen.getByText(/50\.0%/)).toBeInTheDocument()
+    expect(screen.getByText('(50%)')).toBeInTheDocument()
   })
 
   it('não exibe percentual quando total não é passado', () => {
@@ -61,7 +62,34 @@ describe('TooltipGrafico', () => {
       { value: 20, color: '#222', name: 'B' },
     ]
     render(<TooltipGrafico active={true} payload={multi} label="Y" />)
-    expect(screen.getByText(/A: 10/)).toBeInTheDocument()
-    expect(screen.getByText(/B: 20/)).toBeInTheDocument()
+    expect(screen.getByText('A:')).toBeInTheDocument()
+    expect(screen.getByText('10')).toBeInTheDocument()
+    expect(screen.getByText('B:')).toBeInTheDocument()
+    expect(screen.getByText('20')).toBeInTheDocument()
+  })
+
+  it('percentual em pt-BR, com vírgula', () => {
+    render(<TooltipGrafico active payload={[{ value: 1, name: 'A', color: '#111' }]} label="X" total={3} />)
+    expect(screen.getByText('(33,3%)')).toBeInTheDocument()
+  })
+
+  it('milhar com ponto quando não há formatarValor', () => {
+    render(<TooltipGrafico active payload={[{ value: 12345, name: 'A', color: '#111' }]} label="X" />)
+    expect(screen.getByText('12.345')).toBeInTheDocument()
+  })
+
+  it('texto na cor do tema, não na cor da série', () => {
+    render(<TooltipGrafico active payload={payload} label="2023" />)
+    const valor = screen.getByText('50')
+    expect(valor.closest('li').getAttribute('style')).toBeNull()
+    expect(valor.closest('li').querySelector('[aria-hidden="true"]').style.background).not.toBe('')
+  })
+
+  it('em pizza (sem label) usa o nome da fatia como título e nomeSerie na linha', () => {
+    const fatia = [{ value: 12, name: 'Pesquisa', payload: { fill: '#123456' } }]
+    render(<TooltipGrafico active payload={fatia} total={48} nomeSerie="Projetos" />)
+    expect(screen.getByText('Pesquisa')).toBeInTheDocument()
+    expect(screen.getByText('Projetos:')).toBeInTheDocument()
+    expect(screen.getByText('(25%)')).toBeInTheDocument()
   })
 })
