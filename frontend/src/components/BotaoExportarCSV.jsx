@@ -1,3 +1,4 @@
+import { Download } from 'lucide-react'
 import { valorExibicao } from '../utils/exibicao'
 
 function dataHoje() {
@@ -36,9 +37,10 @@ export default function BotaoExportarCSV({ dados = [], nomeArquivo = 'export', c
   return (
     <button
       onClick={exportar}
-      className="px-2 py-1 text-xs border border-borda rounded hover:bg-azul-suave transition-colors"
+      className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-borda rounded hover:bg-azul-suave transition-colors"
     >
-      ⬇ CSV
+      <Download className="w-3.5 h-3.5" aria-hidden="true" />
+      CSV
     </button>
   )
 }

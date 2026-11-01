@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../context/ThemeContext'
+import { LogOut } from 'lucide-react'
+import SeletorTema from './SeletorTema'
 import {
   iconProjetos, iconFomento, iconBolsistas, iconNucleos,
   iconGrupos, iconIncubadas, iconPosGraduacao, iconLaboratorios,
@@ -30,7 +31,6 @@ const linkClass = ({ isActive }) =>
 
 export default function Sidebar({ isOpen, onClose }) {
   const { sair } = useAuth()
-  const { dark, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   function handleLogout() {
@@ -84,18 +84,12 @@ export default function Sidebar({ isOpen, onClose }) {
 
         {/* Rodapé */}
         <div className="border-t border-white/10 px-4 py-4 flex flex-col gap-2">
-          <button
-            onClick={toggleTheme}
-            className="flex items-center gap-3 text-white/70 hover:text-white text-sm px-2 py-2 rounded hover:bg-white/10 transition-colors"
-          >
-            <span>{dark ? '☀️' : '🌙'}</span>
-            <span>{dark ? 'Modo claro' : 'Modo escuro'}</span>
-          </button>
+          <SeletorTema variante="faixa" comRotulo className="w-full" />
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 text-white/70 hover:text-white text-sm px-2 py-2 rounded hover:bg-white/10 transition-colors"
           >
-            <span>🚪</span>
+            <LogOut className="w-4 h-4" aria-hidden="true" />
             <span>Sair</span>
           </button>
         </div>

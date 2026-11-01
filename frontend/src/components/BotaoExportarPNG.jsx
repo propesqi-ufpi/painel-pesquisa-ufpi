@@ -1,3 +1,4 @@
+import { Download } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import { lerCoresGrafico } from '../utils/coresGrafico'
 
@@ -28,9 +29,10 @@ export default function BotaoExportarPNG({ refGrafico, nomeArquivo = 'grafico' }
   return (
     <button
       onClick={exportar}
-      className="px-2 py-1 text-xs border border-borda rounded hover:bg-azul-suave transition-colors"
+      className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-borda rounded hover:bg-azul-suave transition-colors"
     >
-      ⬇ PNG
+      <Download className="w-3.5 h-3.5" aria-hidden="true" />
+      PNG
     </button>
   )
 }

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import SkeletonTabela from './SkeletonTabela'
 import { valorExibicao, VAZIO } from '../utils/exibicao'
 import { ordenarLinhas, proximaOrdem } from '../utils/ordenacao'
@@ -7,13 +8,8 @@ const ARIA_SORT = { asc: 'ascending', desc: 'descending' }
 const PROXIMA_ACAO = { asc: 'decrescente', desc: 'sem ordenação' }
 
 function IconeOrdem({ dir }) {
-  // Seta para cima (crescente), para baixo (decrescente) ou as duas (coluna sem ordem ativa).
-  return (
-    <svg viewBox="0 0 24 24" className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {dir !== 'desc' && <path d={dir === 'asc' ? 'M12 19V5M5 12l7-7 7 7' : 'M8 9l4-4 4 4'} />}
-      {dir !== 'asc' && <path d={dir === 'desc' ? 'M12 5v14M19 12l-7 7-7-7' : 'M16 15l-4 4-4-4'} />}
-    </svg>
-  )
+  const Icone = dir === 'asc' ? ArrowUp : dir === 'desc' ? ArrowDown : ArrowUpDown
+  return <Icone className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} aria-hidden="true" />
 }
 
 function Cabecalho({ coluna, ordem, onOrdenar }) {

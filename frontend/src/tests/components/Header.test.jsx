@@ -1,20 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 
-const mockToggle = vi.fn()
-
 vi.mock('react-router-dom', () => ({
   useLocation: () => ({ pathname: '/projetos-pdi' }),
-}))
-
-vi.mock('../../context/ThemeContext', () => ({
-  useTheme: () => ({ dark: false, toggleTheme: mockToggle }),
 }))
 
 import Header from '../../components/Header'
 
 describe('Header', () => {
-  beforeEach(() => mockToggle.mockReset())
-
   it('exibe o título correspondente à rota /projetos-pdi', () => {
     render(<Header onMenuClick={() => {}} />)
     expect(screen.getByText('Projetos PD&I')).toBeInTheDocument()
@@ -27,15 +19,11 @@ describe('Header', () => {
     expect(onMenuClick).toHaveBeenCalledTimes(1)
   })
 
-  it('exibe ícone de lua no modo claro', () => {
+  it('botão de menu usa ícone, não emoji', () => {
     render(<Header onMenuClick={() => {}} />)
-    expect(screen.getByLabelText('Alternar tema').textContent).toContain('🌙')
-  })
-
-  it('chama toggleTheme ao clicar no botão de tema', () => {
-    render(<Header onMenuClick={() => {}} />)
-    fireEvent.click(screen.getByLabelText('Alternar tema'))
-    expect(mockToggle).toHaveBeenCalledTimes(1)
+    const botao = screen.getByLabelText('Abrir menu')
+    expect(botao.querySelector('svg')).toBeInTheDocument()
+    expect(botao.textContent).toBe('')
   })
 })
 
