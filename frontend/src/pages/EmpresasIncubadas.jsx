@@ -1,8 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import {
-  PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,
-} from 'recharts'
-import {
   getKPIsIncubadas, getFiltrosIncubadas,
   getIncubadasPorIncubadora, getIncubadas,
 } from '../api/index.js'
@@ -12,15 +9,13 @@ import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconIncubadas, iconGraduadas, iconInbate } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
 import { useCoresGrafico, useCorPorCategoria } from '../utils/coresGrafico'
-import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
-import { valorDaFatia } from '../components/graficos/barraClicavel'
-import LegendaClicavel from '../components/graficos/LegendaClicavel'
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import Rosca from '../components/graficos/Rosca'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
@@ -83,7 +78,6 @@ export default function EmpresasIncubadas() {
     setFiltroSituacao([])
   }
 
-  const totalDonut = dadosPorIncubadora.reduce((s, d) => s + (d.total ?? 0), 0)
 
   // Mesmos campos nos seletores e nos chips de filtros ativos.
   const campos = [
@@ -133,7 +127,7 @@ export default function EmpresasIncubadas() {
 
         {/* Donut */}
         <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
-          <div ref={refGrafico}>
+          <div ref={refGrafico} className="flex-1 flex flex-col">
             <h3 className="text-xs font-semibold text-center text-texto mb-2">
               Número de Empresas Incubadas por Incubadora
             </h3>
@@ -141,35 +135,15 @@ export default function EmpresasIncubadas() {
             {loadingGrafico ? (
               <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart>
-                  <Pie
-                    stroke={cores.superficie}
-                    strokeWidth={2}
-                    data={dadosPorIncubadora}
-                    dataKey="total"
-                    nameKey="incubadora"
-                    className="cursor-pointer"
-                    onClick={(d) => alternarIncubadora(valorDaFatia(d, 'incubadora'))}
-                    cx="42%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={90}
-                    label={({ value, percent }) =>
-                      `${value} (${(percent * 100).toFixed(1).replace('.', ',')}%)`
-                    }
-                    labelLine
-                  >
-                    {dadosPorIncubadora.map((item, i) => (
-                      <Cell key={i} fill={corDe(item.incubadora)} fillOpacity={opacidade(filtroIncubadora, item.incubadora)} />
-                    ))}
-                  </Pie>
-                  <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico total={totalDonut} />} />
-                  <Legend layout="vertical" align="right" verticalAlign="middle"
-                    content={<LegendaClicavel vertical selecionados={filtroIncubadora} onAlternar={alternarIncubadora} />}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <Rosca
+                dados={dadosPorIncubadora}
+                categoria="incubadora"
+                corDe={corDe}
+                selecionados={filtroIncubadora}
+                onAlternar={alternarIncubadora}
+                rotuloTotal="empresas"
+                nomeSerie="Empresas"
+              />
             )}
           </div>
           <div className="flex justify-end mt-1">

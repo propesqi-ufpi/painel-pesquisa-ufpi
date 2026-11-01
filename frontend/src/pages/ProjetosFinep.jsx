@@ -1,19 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts'
 import { getKPIsFinep, getFiltrosFinep, getRelacaoTipoFinep, getPorCentroFinep } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
 import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconFomento, iconProjetos } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
 import { useCoresGrafico, useCorPorCategoria } from '../utils/coresGrafico'
-import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
-import { valorDaFatia } from '../components/graficos/barraClicavel'
-import LegendaClicavel from '../components/graficos/LegendaClicavel'
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import Rosca from '../components/graficos/Rosca'
 import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
@@ -83,7 +80,6 @@ export default function ProjetosFinep() {
     setFiltroModalidade([])
   }
 
-  const totalRelacao = dadosRelacao.reduce((s, d) => s + (d.total ?? 0), 0)
 
   // Mesmos campos nos seletores e nos chips de filtros ativos.
   const campos = [
@@ -129,7 +125,7 @@ export default function ProjetosFinep() {
 
         {/* Donut */}
         <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
-          <div ref={refGraficoDonut} className="flex-1">
+          <div ref={refGraficoDonut} className="flex-1 flex flex-col">
             <h3 className="text-xs font-semibold text-center text-texto mb-2">
               Relação: Internos x Externos
             </h3>
@@ -137,33 +133,15 @@ export default function ProjetosFinep() {
             {loadingGraficos ? (
               <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart>
-                  <Pie
-                    stroke={cores.superficie}
-                    strokeWidth={2}
-                    data={dadosRelacao}
-                    dataKey="total"
-                    nameKey="tipo"
-                    className="cursor-pointer"
-                    onClick={(d) => alternarModalidade(valorDaFatia(d, 'tipo'))}
-                    cx="42%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={95}
-                    label={({ value, percent }) =>
-                      `${value} (${(percent * 100).toFixed(1)}%)`
-                    }
-                    labelLine
-                  >
-                    {dadosRelacao.map((item, i) => (
-                      <Cell key={i} fill={corDe(item.tipo)} fillOpacity={opacidade(filtroModalidade, item.tipo)} />
-                    ))}
-                  </Pie>
-                  <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico total={totalRelacao} />} />
-                  <Legend content={<LegendaClicavel selecionados={filtroModalidade} onAlternar={alternarModalidade} />} />
-                </PieChart>
-              </ResponsiveContainer>
+              <Rosca
+                dados={dadosRelacao}
+                categoria="tipo"
+                corDe={corDe}
+                selecionados={filtroModalidade}
+                onAlternar={alternarModalidade}
+                rotuloTotal="projetos"
+                nomeSerie="Projetos"
+              />
             )}
           </div>
           <div className="flex justify-end mt-1">
