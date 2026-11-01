@@ -1,5 +1,43 @@
+import { useMemo, useState } from 'react'
 import SkeletonTabela from './SkeletonTabela'
 import { valorExibicao, VAZIO } from '../utils/exibicao'
+import { ordenarLinhas, proximaOrdem } from '../utils/ordenacao'
+
+const ARIA_SORT = { asc: 'ascending', desc: 'descending' }
+const PROXIMA_ACAO = { asc: 'decrescente', desc: 'sem ordenação' }
+
+function IconeOrdem({ dir }) {
+  // Seta para cima (crescente), para baixo (decrescente) ou as duas (coluna sem ordem ativa).
+  return (
+    <svg viewBox="0 0 24 24" className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {dir !== 'desc' && <path d={dir === 'asc' ? 'M12 19V5M5 12l7-7 7 7' : 'M8 9l4-4 4 4'} />}
+      {dir !== 'asc' && <path d={dir === 'desc' ? 'M12 5v14M19 12l-7 7-7-7' : 'M16 15l-4 4-4-4'} />}
+    </svg>
+  )
+}
+
+function Cabecalho({ coluna, ordem, onOrdenar }) {
+  const ativa = ordem?.key === coluna.key ? ordem.dir : null
+  if (coluna.ordenavel === false) {
+    return <th scope="col" className="text-xs font-semibold py-2 px-3 whitespace-nowrap">{coluna.label}</th>
+  }
+
+  return (
+    <th scope="col" aria-sort={ARIA_SORT[ativa] ?? 'none'} className="text-xs whitespace-nowrap p-0">
+      <button
+        type="button"
+        onClick={() => onOrdenar(coluna.key)}
+        title={`Ordenar: ${ativa ? PROXIMA_ACAO[ativa] : 'crescente'}`}
+        className="group w-full flex items-center gap-1 py-2 px-3 text-left font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70"
+      >
+        <span>{coluna.label}</span>
+        <span className={`transition-opacity ${ativa ? 'opacity-100' : 'opacity-0 group-hover:opacity-70 group-focus-visible:opacity-70'}`}>
+          <IconeOrdem dir={ativa} />
+        </span>
+      </button>
+    </th>
+  )
+}
 
 function Celula({ coluna, linha }) {
   const valor = valorExibicao(coluna, linha)
@@ -26,6 +64,9 @@ export default function TabelaPaginada({
   onAnterior,
   onProxima,
 }) {
+  const [ordem, setOrdem] = useState(null)
+  const linhas = useMemo(() => ordenarLinhas(dados, colunas, ordem), [dados, colunas, ordem])
+
   if (loading) return <SkeletonTabela />
 
   const comPaginacao = totalPaginas != null && totalPaginas > 0
@@ -37,9 +78,12 @@ export default function TabelaPaginada({
           <thead className="sticky top-0 z-10">
             <tr className="bg-azul-escuro text-white">
               {colunas.map((col) => (
-                <th key={col.key} className="text-xs font-semibold py-2 px-3 whitespace-nowrap">
-                  {col.label}
-                </th>
+                <Cabecalho
+                  key={col.key}
+                  coluna={col}
+                  ordem={ordem}
+                  onOrdenar={(key) => setOrdem((atual) => proximaOrdem(atual, key))}
+                />
               ))}
             </tr>
           </thead>
@@ -51,9 +95,9 @@ export default function TabelaPaginada({
                 </td>
               </tr>
             ) : (
-              dados.map((linha, i) => (
+              linhas.map((linha, i) => (
                 <tr
-                  key={i}
+                  key={linha.id ?? i}
                   className={`${
                     i % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'
                   } hover:bg-azul-claro dark:hover:bg-gray-700 transition-colors`}
