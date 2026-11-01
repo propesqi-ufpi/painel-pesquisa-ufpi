@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 import { Menu } from 'lucide-react'
+import { Brasao } from './Marca'
 
 const titulos = {
   '/':                     'Geral',
@@ -19,7 +20,7 @@ export default function Header({ onMenuClick }) {
   const titulo = titulos[pathname] ?? ''
 
   return (
-    <header className="bg-superficie shadow-sm px-4 py-3 flex items-center gap-4">
+    <header className="bg-superficie shadow-sm px-4 py-3 flex items-center gap-3">
       {/* Hamburguer — só mobile */}
       <button
         onClick={onMenuClick}
@@ -28,6 +29,9 @@ export default function Header({ onMenuClick }) {
       >
         <Menu className="w-5 h-5" aria-hidden="true" />
       </button>
+
+      {/* No mobile a sidebar some; o brasão fica no cabeçalho. */}
+      <Brasao tamanho="sm" className="md:hidden" />
 
       {/* Título da página */}
       <h1 className="flex-1 text-base font-semibold text-texto">

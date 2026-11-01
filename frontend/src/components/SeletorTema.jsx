@@ -23,12 +23,17 @@ const ESTILOS = {
 }
 
 /** Tema em três estados, como grupo de botões de rádio. */
-export default function SeletorTema({ variante = 'superficie', comRotulo = false, className = '' }) {
+export default function SeletorTema({ variante = 'superficie', comRotulo = false, vertical = false, className = '' }) {
   const { tema, setTema } = useTheme()
   const estilo = ESTILOS[variante]
 
   return (
-    <div role="radiogroup" aria-label="Tema" className={`inline-flex rounded-lg p-0.5 gap-0.5 ${estilo.grupo} ${className}`}>
+    <div
+      role="radiogroup"
+      aria-label="Tema"
+      aria-orientation={vertical ? 'vertical' : undefined}
+      className={`inline-flex rounded-lg p-0.5 gap-0.5 ${vertical ? 'flex-col' : ''} ${estilo.grupo} ${className}`}
+    >
       {OPCOES.map(({ valor, rotulo, Icone }) => {
         const ativo = tema === valor
         return (

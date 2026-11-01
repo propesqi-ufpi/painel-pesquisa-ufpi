@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { cadastrar } from '../api/index.js'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { Brasao } from '../components/Marca'
 
 export default function Cadastro() {
   const [username, setUsername] = useState('')
@@ -47,11 +48,13 @@ export default function Cadastro() {
       <div className="w-full max-w-md bg-superficie rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Cabeçalho */}
-        <div className="bg-faixa px-8 py-7 text-center">
-          <h1 className="text-white text-xl font-bold leading-tight">
-            Criar Conta
+        <div className="bg-faixa px-8 pt-7 pb-6 text-center border-b-[3px] border-ouro flex flex-col items-center">
+          <Brasao tamanho="lg" />
+          <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.08em] text-white/75">UFPI · PROPESQI</p>
+          <h1 className="mt-1 text-white text-xl font-bold leading-tight">
+            Criar conta
           </h1>
-          <p className="text-white/60 text-sm mt-1">Painel de Pesquisa e Inovação — UFPI</p>
+          <p className="text-white/70 text-sm mt-1">Painel de Pesquisa e Inovação</p>
         </div>
 
         {sucesso ? (
