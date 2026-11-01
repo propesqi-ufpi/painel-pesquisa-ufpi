@@ -1,23 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from 'recharts'
-import {
-  getKPIsGrupos, getFiltrosGrupos,
-  getGruposPorArea, getGrupos,
-} from '../api/index.js'
+import { getKPIsGrupos, getFiltrosGrupos, getGruposPorArea, getGrupos } from '../api/index.js'
 import SkeletonCard from '../components/SkeletonCard'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconGrupos } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
-import { useCoresGrafico } from '../utils/coresGrafico'
 import { alternarValor, semChave } from '../utils/filtroCruzado'
-import { barraClicavel } from '../components/graficos/barraClicavel'
+import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
@@ -27,7 +19,6 @@ const COLUNAS = [
   { key: 'ultimo_envio',      label: 'ÚLTIMO ENVIO' },
   { key: 'status',            label: 'SITUAÇÃO' },
 ]
-
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
@@ -43,7 +34,6 @@ function CardGrupos({ valor, loading }) {
 }
 
 export default function GruposPesquisa() {
-  const cores = useCoresGrafico()
   const [kpis,         setKpis]         = useState({})
   const [opcoes,       setOpcoes]       = useState({})
   const [dadosPorArea, setDadosPorArea] = useState([])
@@ -101,7 +91,7 @@ export default function GruposPesquisa() {
     <div className="pagina">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
-      <div className="pagina-topo-tres lg:h-[230px]">
+      <div className="pagina-topo-tres lg:h-[250px]">
 
         {/* Card */}
         <div className="lg:w-44 lg:flex-shrink-0">
@@ -118,21 +108,7 @@ export default function GruposPesquisa() {
             {loadingGrafico ? (
               <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <div className="overflow-y-auto" style={{ maxHeight: 148 }}>
-                <div style={{ height: Math.max(148, dadosPorArea.length * 26), width: '100%' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={dadosPorArea} layout="vertical" margin={{ top: 2, right: 24, left: 0, bottom: 16 }}>
-                      <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" horizontal={false} />
-                      <YAxis stroke={cores.grade} type="category" dataKey="area" width={120} tick={{ fontSize: 9, fill: cores.eixo }} />
-                      <XAxis stroke={cores.grade} type="number" tick={{ fontSize: 10, fill: cores.eixo }}
-                        label={{ value: 'N° DE GRUPOS', position: 'insideBottom', offset: -10, fontSize: 9, fill: cores.eixo }}
-                      />
-                      <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico />} />
-                      <Bar dataKey="total" fill={cores.serie1} radius={[0, 3, 3, 0]} shape={barraClicavel({ categoria: 'area', selecionados: filtroArea, onAlternar: alternarArea })} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
+              <BarrasHorizontais dados={dadosPorArea} categoria="area" selecionados={filtroArea} onAlternar={alternarArea} nomeSerie="Grupos" alturaMax={150} />
             )}
           </div>
           <div className="flex justify-end mt-1">

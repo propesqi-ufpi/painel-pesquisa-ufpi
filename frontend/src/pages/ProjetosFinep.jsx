@@ -1,13 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  PieChart, Pie, Cell, Legend, Tooltip,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList,
-  ResponsiveContainer,
-} from 'recharts'
-import {
-  getKPIsFinep, getFiltrosFinep,
-  getRelacaoTipoFinep, getPorCentroFinep,
-} from '../api/index.js'
+import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts'
+import { getKPIsFinep, getFiltrosFinep, getRelacaoTipoFinep, getPorCentroFinep } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
 import FiltroSelect from '../components/FiltroSelect'
@@ -18,27 +11,14 @@ import { iconFomento, iconProjetos } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
 import { useCoresGrafico, useCorPorCategoria } from '../utils/coresGrafico'
 import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
-import { barraClicavel, valorDaFatia } from '../components/graficos/barraClicavel'
+import { valorDaFatia } from '../components/graficos/barraClicavel'
 import LegendaClicavel from '../components/graficos/LegendaClicavel'
+import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
-
-
 
 function formatarMi(v) {
   if (v == null) return '-'
   return v.toFixed(2).replace('.', ',') + ' Mi'
-}
-
-function formatarEixoMi(v) {
-  return `R$ ${Number(v).toFixed(1).replace('.', ',')} Mi`
-}
-
-function BarLabelMi({ x, y, width, value, cor }) {
-  return (
-    <text x={x + width / 2} y={y - 3} textAnchor="middle" fontSize={9} fill={cor}>
-      {`R$ ${Number(value).toFixed(1).replace('.', ',')} Mi`}
-    </text>
-  )
 }
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
@@ -191,17 +171,7 @@ export default function ProjetosFinep() {
             {loadingGraficos ? (
               <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={dadosPorCentro} margin={{ top: 20, right: 8, left: 8, bottom: 8 }}>
-                  <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" vertical={false} />
-                  <XAxis stroke={cores.grade} dataKey="centro" tick={{ fontSize: 10, fill: cores.eixo }} />
-                  <YAxis stroke={cores.grade} tickFormatter={formatarEixoMi} tick={{ fontSize: 9, fill: cores.eixo }} width={62} />
-                  <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico formatarValor={(v) => `R$ ${formatarMi(v)}`} />} />
-                  <Bar dataKey="valor_mi" fill={cores.serie1} radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })}>
-                    <LabelList content={<BarLabelMi cor={cores.eixo} />} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <BarrasHorizontais dados={dadosPorCentro} categoria="centro" valor="valor_mi" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Fomento" formatarValor={(v) => `R$ ${formatarMi(v)}`} alturaMax={240} />
             )}
           </div>
           <div className="flex justify-end mt-1">

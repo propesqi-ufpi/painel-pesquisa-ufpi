@@ -21,7 +21,6 @@ import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconPatentes, iconSoftwares, iconMarcas } from '../assets/icons.js'
 
-
 const COLUNAS_VITRINE = [
   { key: 'pedido',     label: 'PEDIDO' },
   { key: 'ano',        label: 'ANO' },
@@ -91,7 +90,6 @@ export default function ProducaoIntelectual() {
     setFiltroAno([])
     setFiltroTipo([])
   }
-
 
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:h-full">

@@ -1,25 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
-import {
-  getKPIsProjetosPDI, getFiltrosPDI,
-  getPorAreaPDI, getPorCentroPDI, getProjetosPDI,
-} from '../api/index.js'
+import { getKPIsProjetosPDI, getFiltrosPDI, getPorAreaPDI, getPorCentroPDI, getProjetosPDI } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconConcluidos, iconEmAndamento } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
-import { useCoresGrafico } from '../utils/coresGrafico'
 import { alternarValor, semChave } from '../utils/filtroCruzado'
-import { barraClicavel } from '../components/graficos/barraClicavel'
+import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
@@ -31,30 +22,9 @@ const COLUNAS = [
   { key: 'area',        label: 'ÁREA DO CONHECIMENTO' },
 ]
 
-function TickRotacionado({ x, y, payload, cor }) {
-  const texto =
-    typeof payload.value === 'string' && payload.value.length > 12
-      ? payload.value.slice(0, 12) + '…'
-      : payload.value
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill={cor} fontSize={9} transform="rotate(-35)">
-        {texto}
-      </text>
-    </g>
-  )
-}
-
-function formatarEixoY(v) {
-  if (v >= 1000) return `${(v / 1000).toFixed(1).replace('.', ',')} Mil`
-  return String(v)
-}
-
-
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function ProjetosPDI() {
-  const cores = useCoresGrafico()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorArea,   setDadosPorArea]   = useState([])
@@ -168,15 +138,7 @@ export default function ProjetosPDI() {
               {loadingGraficos ? (
                 <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
               ) : (
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={dadosPorArea} margin={{ top: 8, right: 8, left: 0, bottom: 48 }}>
-                    <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" vertical={false} />
-                    <XAxis stroke={cores.grade} dataKey="area" tick={<TickRotacionado cor={cores.eixo} />} interval={0} />
-                    <YAxis stroke={cores.grade} tick={{ fontSize: 10, fill: cores.eixo }} />
-                    <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico />} />
-                    <Bar dataKey="total" fill={cores.serie1} radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'area', selecionados: filtroArea, onAlternar: alternarArea })} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <BarrasHorizontais dados={dadosPorArea} categoria="area" selecionados={filtroArea} onAlternar={alternarArea} nomeSerie="Projetos" alturaMax={210} />
               )}
             </div>
             <div className="flex justify-end mt-1">
@@ -193,15 +155,7 @@ export default function ProjetosPDI() {
               {loadingGraficos ? (
                 <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
               ) : (
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={dadosPorCentro} margin={{ top: 8, right: 8, left: 0, bottom: 48 }}>
-                    <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" vertical={false} />
-                    <XAxis stroke={cores.grade} dataKey="centro" tick={<TickRotacionado cor={cores.eixo} />} interval={0} />
-                    <YAxis stroke={cores.grade} tickFormatter={formatarEixoY} tick={{ fontSize: 10, fill: cores.eixo }} />
-                    <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico />} />
-                    <Bar dataKey="total" fill={cores.serie1} radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <BarrasHorizontais dados={dadosPorCentro} categoria="centro" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Projetos" alturaMax={210} />
               )}
             </div>
             <div className="flex justify-end mt-1">
