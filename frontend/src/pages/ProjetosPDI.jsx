@@ -122,13 +122,13 @@ export default function ProjetosPDI() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Linha 1: KPI Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3">
+      <div className="pagina-topo">
 
         {/* Cards */}
-        <div className="grid grid-cols-2 gap-3 w-56 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-3 lg:w-56 lg:flex-shrink-0">
           {loadingKpis ? (
             <><SkeletonCard /><SkeletonCard /></>
           ) : (
@@ -140,8 +140,8 @@ export default function ProjetosPDI() {
         </div>
 
         {/* Filtros */}
-        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
-          <div className="grid grid-cols-3 xl:grid-cols-4 gap-2">
+        <div className="lg:flex-1 bg-superficie rounded-xl p-3 shadow-sm">
+          <div className="grade-filtros">
             <FiltroSelect label="Ano Início"   value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={opcoesFiltro(opcoes.anos_inicio)} />
             <FiltroSelect label="Ano Término"  value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={opcoesFiltro(opcoes.anos_termino)} />
             <FiltroSelect label="Centro/Campi" value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.centros)} />
@@ -154,7 +154,7 @@ export default function ProjetosPDI() {
       </div>
 
       {/* ── Linha 2: Gráficos + Tabela ── */}
-      <div className="flex-1 min-h-0 grid grid-cols-2 gap-3">
+      <div className="pagina-corpo">
 
         {/* Coluna de gráficos */}
         <div className="flex flex-col gap-3 min-h-0">
@@ -211,14 +211,14 @@ export default function ProjetosPDI() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col min-h-0">
+        <div className="cartao-tabela">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
             <h3 className="text-xs font-semibold text-texto">
               Informações dos Projetos de Pesquisas
             </h3>
             <BotaoExportarCSV dados={projetos} nomeArquivo="projetos_pdi" colunas={COLUNAS} />
           </div>
-          <div className="flex-1 min-h-0">
+          <div className="cartao-tabela-corpo">
             <TabelaPaginada colunas={COLUNAS} dados={projetos} loading={loadingTabela} />
           </div>
         </div>

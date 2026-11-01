@@ -98,18 +98,18 @@ export default function GruposPesquisa() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3 items-stretch" style={{ height: '230px' }}>
+      <div className="pagina-topo-tres lg:h-[230px]">
 
         {/* Card */}
-        <div className="w-44 flex-shrink-0">
+        <div className="lg:w-44 lg:flex-shrink-0">
           <CardGrupos valor={kpis.total_grupos} loading={loadingKpis} />
         </div>
 
         {/* Gráfico */}
-        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
+        <div className="topo-grafico bg-superficie rounded-xl p-3 shadow-sm">
           <div ref={refGrafico}>
             <h3 className="text-xs font-semibold text-center text-texto mb-1">
               Nº de Grupos por Área Predominante
@@ -141,7 +141,7 @@ export default function GruposPesquisa() {
         </div>
 
         {/* Filtros */}
-        <div className="w-44 flex-shrink-0">
+        <div className="lg:w-44 lg:flex-shrink-0">
           <div className="bg-superficie rounded-xl p-3 shadow-sm h-full space-y-2">
             <FiltroSelect label="Nome do Grupo"       value={filtroNome} onChange={setFiltroNome} options={opcoesFiltro(opcoes.nomes)} />
             <FiltroSelect label="Área"               value={filtroArea} onChange={setFiltroArea} options={opcoesFiltro(opcoes.areas)} />
@@ -152,14 +152,14 @@ export default function GruposPesquisa() {
       </div>
 
       {/* ── Tabela ── */}
-      <div className="flex-1 min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
+      <div className="cartao-tabela">
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
           <h3 className="text-xs font-semibold text-texto">
             Informações dos Grupos de Pesquisas
           </h3>
           <BotaoExportarCSV dados={grupos} nomeArquivo="grupos" colunas={COLUNAS} />
         </div>
-        <div className="flex-1 min-h-0">
+        <div className="cartao-tabela-corpo">
           <TabelaPaginada colunas={COLUNAS} dados={grupos} loading={loadingTabela} />
         </div>
       </div>

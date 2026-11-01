@@ -99,18 +99,18 @@ export default function Laboratorios() {
   const totalPie = dadosPorCentro.reduce((s, d) => s + (d.total ?? 0), 0)
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3 items-stretch" style={{ height: '280px' }}>
+      <div className="pagina-topo-tres lg:h-[280px]">
 
         {/* Card */}
-        <div className="w-44 flex-shrink-0">
+        <div className="lg:w-44 lg:flex-shrink-0">
           <CardLabs valor={kpis.total_laboratorios} loading={loadingKpis} />
         </div>
 
         {/* Gráfico pizza */}
-        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
+        <div className="topo-grafico bg-superficie rounded-xl p-3 shadow-sm">
           <div ref={refGrafico}>
             <h3 className="text-xs font-semibold text-center text-texto mb-1">
               Nº de Laboratório x Centro/Campi
@@ -155,7 +155,7 @@ export default function Laboratorios() {
         </div>
 
         {/* Filtros */}
-        <div className="w-44 flex-shrink-0">
+        <div className="lg:w-44 lg:flex-shrink-0">
           <div className="bg-superficie rounded-xl p-3 shadow-sm h-full space-y-2">
             <FiltroSelect label="Laboratório"  value={filtroNome}   onChange={setFiltroNome}   options={opcoesFiltro(opcoes.nomes)} />
             <FiltroSelect label="Centro/Campi" value={filtroCentro} onChange={setFiltroCentro} options={opcoesFiltro(opcoes.centros)} />
@@ -165,14 +165,14 @@ export default function Laboratorios() {
       </div>
 
       {/* ── Tabela ── */}
-      <div className="flex-1 min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
+      <div className="cartao-tabela">
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
           <h3 className="text-xs font-semibold text-texto">
             Informações dos Laboratórios
           </h3>
           <BotaoExportarCSV dados={labs} nomeArquivo="laboratorios" colunas={COLUNAS} />
         </div>
-        <div className="flex-1 min-h-0">
+        <div className="cartao-tabela-corpo">
           <TabelaPaginada colunas={COLUNAS} dados={labs} loading={loadingTabela} />
         </div>
       </div>

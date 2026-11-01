@@ -63,6 +63,23 @@
   }
 }
 
+/*
+ * Esqueleto das páginas. Até 1023 px tudo empilha e a página rola; a partir de
+ * lg (1024 px) volta o painel de tela única, com a tabela rolando por dentro.
+ */
+@layer components {
+  .pagina          { @apply flex flex-col gap-3 lg:h-full; }
+  .pagina-topo     { @apply flex flex-col gap-3 lg:flex-row lg:flex-shrink-0; }
+  .pagina-corpo    { @apply grid grid-cols-1 gap-3 lg:flex-1 lg:min-h-0 lg:grid-cols-2; }
+  .grade-filtros   { @apply grid grid-cols-2 gap-2 lg:grid-cols-3 xl:grid-cols-4; }
+  /* No celular a tabela cresce até 75% da tela e daí rola por dentro do cartão. */
+  .cartao-tabela   { @apply bg-superficie rounded-xl p-3 shadow-sm flex flex-col max-h-[75vh] lg:max-h-none lg:min-h-0 lg:flex-1; }
+  .cartao-tabela-corpo { @apply flex-1 min-h-0 flex flex-col; }
+  /* Linha de cima de Grupos, Pós-Graduação e Laboratórios: destaque, gráfico e filtros. */
+  .pagina-topo-tres { @apply grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-shrink-0 lg:items-stretch; }
+  .pagina-topo-tres > .topo-grafico { @apply order-last sm:col-span-2 lg:order-none lg:flex-1; }
+}
+
 /* Eixos dos gráficos em Plex Condensed: nomes de centros e áreas são longos. */
 @layer components {
   .recharts-cartesian-axis-tick-value,

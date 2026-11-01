@@ -68,7 +68,7 @@ export default function TabelaPaginada({
   const comPaginacao = totalPaginas != null && totalPaginas > 0
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full min-h-0 flex flex-col">
       <div className="flex-1 overflow-y-auto overflow-x-auto">
         <table className="w-full text-left border-collapse font-condensed tabular-nums">
           <thead className="sticky top-0 z-10">
