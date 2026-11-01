@@ -11,6 +11,10 @@ import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { opcoesFiltro } from '../utils/exibicao'
+import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
+import { valorDaFatia } from '../components/graficos/barraClicavel'
+import LegendaClicavel from '../components/graficos/LegendaClicavel'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const CORES_CAMPUS = [
   '#1E3A5F', '#2E5F8A', '#4A90D9', '#E74C3C', '#F39C12',
@@ -63,11 +67,13 @@ export default function Bolsistas() {
 
   useEffect(() => {
     setLoadingGrafico(true)
-    getBolsistasPorCampus(filtrosAtivos)
+    getBolsistasPorCampus(semChave(filtrosAtivos, 'campus_centro'))
       .then(setDadosPorCampus)
       .catch(() => {})
       .finally(() => setLoadingGrafico(false))
   }, [filtroModalidade, filtroOrgao, filtroCentro, filtroNome]) // eslint-disable-line
+
+  const alternarCampus = (v) => setFiltroCentro((atual) => alternarValor(atual, v))
 
   function limparFiltros() {
     setFiltroModalidade([])
@@ -106,6 +112,7 @@ export default function Bolsistas() {
           <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
             Bolsistas por Campus/Centro
           </h3>
+          <DicaFiltro />
           {loadingGrafico ? (
             <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
           ) : (
@@ -115,6 +122,8 @@ export default function Bolsistas() {
                   data={dadosPorCampus}
                   dataKey="total"
                   nameKey="campus"
+                  className="cursor-pointer"
+                  onClick={(d) => alternarCampus(valorDaFatia(d, 'campus'))}
                   cx="40%"
                   cy="50%"
                   outerRadius={120}
@@ -123,8 +132,8 @@ export default function Bolsistas() {
                   }
                   labelLine
                 >
-                  {dadosPorCampus.map((_, i) => (
-                    <Cell key={i} fill={CORES_CAMPUS[i % CORES_CAMPUS.length]} />
+                  {dadosPorCampus.map((item, i) => (
+                    <Cell key={i} fill={CORES_CAMPUS[i % CORES_CAMPUS.length]} fillOpacity={opacidade(filtroCentro, item.campus)} />
                   ))}
                 </Pie>
                 <Tooltip content={<TooltipGrafico total={totalCampus} />} />
@@ -132,11 +141,7 @@ export default function Bolsistas() {
                   layout="vertical"
                   align="right"
                   verticalAlign="middle"
-                  iconType="circle"
-                  iconSize={7}
-                  formatter={(value) => (
-                    <span className="text-xs text-gray-600 dark:text-gray-300">{value}</span>
-                  )}
+                  content={<LegendaClicavel vertical selecionados={filtroCentro} onAlternar={alternarCampus} />}
                 />
               </PieChart>
             </ResponsiveContainer>

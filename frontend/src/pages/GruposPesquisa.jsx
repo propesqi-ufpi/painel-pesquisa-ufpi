@@ -15,6 +15,9 @@ import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconGrupos } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import { barraClicavel } from '../components/graficos/barraClicavel'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
   { key: 'nome_grupo',        label: 'NOME DO GRUPO' },
@@ -70,7 +73,7 @@ export default function GruposPesquisa() {
 
   useEffect(() => {
     setLoadingGrafico(true)
-    getGruposPorArea(filtrosAtivos)
+    getGruposPorArea(semChave(filtrosAtivos, 'area_predominante'))
       .then((data) => setDadosPorArea(Array.isArray(data) ? data : []))
       .catch(() => {})
       .finally(() => setLoadingGrafico(false))
@@ -83,6 +86,8 @@ export default function GruposPesquisa() {
       .catch(() => {})
       .finally(() => setLoadingTabela(false))
   }, [filtroNome, filtroArea, filtroAno]) // eslint-disable-line
+
+  const alternarArea = (v) => setFiltroArea((atual) => alternarValor(atual, v))
 
   function limparFiltros() {
     setFiltroNome([])
@@ -107,6 +112,7 @@ export default function GruposPesquisa() {
             <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-1">
               Nº de Grupos por Área Predominante
             </h3>
+            <DicaFiltro />
             {loadingGrafico ? (
               <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
             ) : (
@@ -120,7 +126,7 @@ export default function GruposPesquisa() {
                         label={{ value: 'N° DE GRUPOS', position: 'insideBottom', offset: -10, fontSize: 9, fill: '#6B7280' }}
                       />
                       <Tooltip content={<TooltipGrafico />} />
-                      <Bar dataKey="total" fill="#2E5F8A" radius={[0, 3, 3, 0]} />
+                      <Bar dataKey="total" fill="#2E5F8A" radius={[0, 3, 3, 0]} shape={barraClicavel({ categoria: 'area', selecionados: filtroArea, onAlternar: alternarArea })} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

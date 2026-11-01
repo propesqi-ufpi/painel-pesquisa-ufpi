@@ -16,6 +16,10 @@ import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconIncubadas, iconGraduadas, iconInbate } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
+import { valorDaFatia } from '../components/graficos/barraClicavel'
+import LegendaClicavel from '../components/graficos/LegendaClicavel'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
   { key: 'nome_projeto',   label: 'NOME DO PROJETO' },
@@ -62,7 +66,7 @@ export default function EmpresasIncubadas() {
 
   useEffect(() => {
     setLoadingGrafico(true)
-    getIncubadasPorIncubadora(filtrosAtivos).then(setDadosPorIncubadora).catch(() => {}).finally(() => setLoadingGrafico(false))
+    getIncubadasPorIncubadora(semChave(filtrosAtivos, 'incubadora')).then(setDadosPorIncubadora).catch(() => {}).finally(() => setLoadingGrafico(false))
   }, [filtroIncubadora, filtroSituacao]) // eslint-disable-line
 
   useEffect(() => {
@@ -72,6 +76,8 @@ export default function EmpresasIncubadas() {
       .catch(() => {})
       .finally(() => setLoadingTabela(false))
   }, [filtroIncubadora, filtroSituacao]) // eslint-disable-line
+
+  const alternarIncubadora = (v) => setFiltroIncubadora((atual) => alternarValor(atual, v))
 
   function limparFiltros() {
     setFiltroIncubadora([])
@@ -124,6 +130,7 @@ export default function EmpresasIncubadas() {
             <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
               Número de Empresas Incubadas por Incubadora
             </h3>
+            <DicaFiltro />
             {loadingGrafico ? (
               <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
             ) : (
@@ -133,6 +140,8 @@ export default function EmpresasIncubadas() {
                     data={dadosPorIncubadora}
                     dataKey="total"
                     nameKey="incubadora"
+                    className="cursor-pointer"
+                    onClick={(d) => alternarIncubadora(valorDaFatia(d, 'incubadora'))}
                     cx="42%"
                     cy="50%"
                     innerRadius={45}
@@ -142,13 +151,13 @@ export default function EmpresasIncubadas() {
                     }
                     labelLine
                   >
-                    {dadosPorIncubadora.map((_, i) => (
-                      <Cell key={i} fill={CORES_DONUT[i % CORES_DONUT.length]} />
+                    {dadosPorIncubadora.map((item, i) => (
+                      <Cell key={i} fill={CORES_DONUT[i % CORES_DONUT.length]} fillOpacity={opacidade(filtroIncubadora, item.incubadora)} />
                     ))}
                   </Pie>
                   <Tooltip content={<TooltipGrafico total={totalDonut} />} />
-                  <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" iconSize={7}
-                    formatter={(value) => <span className="text-xs text-gray-700 dark:text-gray-300">{value}</span>}
+                  <Legend layout="vertical" align="right" verticalAlign="middle"
+                    content={<LegendaClicavel vertical selecionados={filtroIncubadora} onAlternar={alternarIncubadora} />}
                   />
                 </PieChart>
               </ResponsiveContainer>

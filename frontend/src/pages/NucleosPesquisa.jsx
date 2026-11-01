@@ -16,6 +16,9 @@ import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconNucleos, iconNucleosAtivos, iconNucleosInativos } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import { barraClicavel } from '../components/graficos/barraClicavel'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
   { key: 'denominacao',   label: 'DENOMINAÇÃO' },
@@ -75,7 +78,7 @@ export default function NucleosPesquisa() {
 
   useEffect(() => {
     setLoadingGrafico(true)
-    getNucleosPorCentro(filtrosAtivos).then(setDadosPorCentro).catch(() => {}).finally(() => setLoadingGrafico(false))
+    getNucleosPorCentro(semChave(filtrosAtivos, 'centro_campus')).then(setDadosPorCentro).catch(() => {}).finally(() => setLoadingGrafico(false))
   }, [filtroCentro, filtroVinculacao, filtroAno, filtroDenominacao]) // eslint-disable-line
 
   useEffect(() => {
@@ -85,6 +88,8 @@ export default function NucleosPesquisa() {
       .catch(() => {})
       .finally(() => setLoadingTabela(false))
   }, [filtroCentro, filtroVinculacao, filtroAno, filtroDenominacao]) // eslint-disable-line
+
+  const alternarCentro = (v) => setFiltroCentro((atual) => alternarValor(atual, v))
 
   function limparFiltros() {
     setFiltroCentro([])
@@ -131,6 +136,7 @@ export default function NucleosPesquisa() {
             <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
               Nº de Núcleos x Centro/Campi
             </h3>
+            <DicaFiltro />
             {loadingGrafico ? (
               <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
             ) : (
@@ -140,7 +146,7 @@ export default function NucleosPesquisa() {
                   <XAxis dataKey="centro" tick={<TickRotacionado />} interval={0} />
                   <YAxis tick={{ fontSize: 10 }} />
                   <Tooltip content={<TooltipGrafico />} />
-                  <Bar dataKey="total" fill="#1E3A5F" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="total" fill="#1E3A5F" radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })} />
                 </BarChart>
               </ResponsiveContainer>
             )}
