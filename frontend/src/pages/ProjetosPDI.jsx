@@ -17,6 +17,9 @@ import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconConcluidos, iconEmAndamento } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import { barraClicavel } from '../components/graficos/barraClicavel'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
   { key: 'titulo',      label: 'PROJETOS' },
@@ -89,7 +92,8 @@ export default function ProjetosPDI() {
 
   useEffect(() => {
     setLoadingGraficos(true)
-    Promise.all([getPorAreaPDI(filtrosAtivos), getPorCentroPDI(filtrosAtivos)])
+    // Cada gráfico ignora o próprio filtro: mostra todas as barras e destaca as selecionadas.
+    Promise.all([getPorAreaPDI(semChave(filtrosAtivos, 'area')), getPorCentroPDI(semChave(filtrosAtivos, 'centro'))])
       .then(([area, centro]) => { setDadosPorArea(area); setDadosPorCentro(centro) })
       .catch(() => {})
       .finally(() => setLoadingGraficos(false))
@@ -102,6 +106,9 @@ export default function ProjetosPDI() {
       .catch(() => {})
       .finally(() => setLoadingTabela(false))
   }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroArea, filtroSituacao]) // eslint-disable-line
+
+  const alternarArea   = (v) => setFiltroArea((atual) => alternarValor(atual, v))
+  const alternarCentro = (v) => setFiltroCentro((atual) => alternarValor(atual, v))
 
   function limparFiltros() {
     setFiltroAnoInicio([])
@@ -155,6 +162,7 @@ export default function ProjetosPDI() {
               <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
                 Nº de Projetos x Área do Conhecimento
               </h3>
+              <DicaFiltro />
               {loadingGraficos ? (
                 <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
               ) : (
@@ -164,7 +172,7 @@ export default function ProjetosPDI() {
                     <XAxis dataKey="area" tick={<TickRotacionado />} interval={0} />
                     <YAxis tick={{ fontSize: 10 }} />
                     <Tooltip content={<TooltipGrafico />} />
-                    <Bar dataKey="total" fill="#1E3A5F" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="total" fill="#1E3A5F" radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'area', selecionados: filtroArea, onAlternar: alternarArea })} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -179,6 +187,7 @@ export default function ProjetosPDI() {
               <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
                 Nº de Projetos x Centros/Campus
               </h3>
+              <DicaFiltro />
               {loadingGraficos ? (
                 <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
               ) : (
@@ -188,7 +197,7 @@ export default function ProjetosPDI() {
                     <XAxis dataKey="centro" tick={<TickRotacionado />} interval={0} />
                     <YAxis tickFormatter={formatarEixoY} tick={{ fontSize: 10 }} />
                     <Tooltip content={<TooltipGrafico />} />
-                    <Bar dataKey="total" fill="#1E3A5F" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="total" fill="#1E3A5F" radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })} />
                   </BarChart>
                 </ResponsiveContainer>
               )}

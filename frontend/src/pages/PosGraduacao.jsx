@@ -15,6 +15,9 @@ import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconPosGraduacao } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import { barraClicavel } from '../components/graficos/barraClicavel'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
   { key: 'programa',       label: 'PROGRAMA' },
@@ -91,7 +94,7 @@ export default function PosGraduacao() {
 
   useEffect(() => {
     setLoadingGrafico(true)
-    getPosGraduacaoPorCentro(filtrosAtivos).then(setDadosPorCentro).catch(() => {}).finally(() => setLoadingGrafico(false))
+    getPosGraduacaoPorCentro(semChave(filtrosAtivos, 'centro')).then(setDadosPorCentro).catch(() => {}).finally(() => setLoadingGrafico(false))
   }, [filtroPrograma, filtroConceito, filtroCentro, filtroNivel, filtroTipo]) // eslint-disable-line
 
   useEffect(() => {
@@ -101,6 +104,8 @@ export default function PosGraduacao() {
       .catch(() => {})
       .finally(() => setLoadingTabela(false))
   }, [filtroPrograma, filtroConceito, filtroCentro, filtroNivel, filtroTipo]) // eslint-disable-line
+
+  const alternarCentro = (v) => setFiltroCentro((atual) => alternarValor(atual, v))
 
   function limparFiltros() {
     setFiltroPrograma([])
@@ -127,6 +132,7 @@ export default function PosGraduacao() {
             <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-1">
               Nº de Pós-graduação x Centro
             </h3>
+            <DicaFiltro />
             {loadingGrafico ? (
               <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
             ) : (
@@ -140,7 +146,7 @@ export default function PosGraduacao() {
                     label={{ value: 'Programas', angle: -90, position: 'insideLeft', offset: 10, fontSize: 9, fill: '#6B7280' }}
                   />
                   <Tooltip content={<TooltipGrafico />} />
-                  <Bar dataKey="total" fill="#2E5F8A" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="total" fill="#2E5F8A" radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })} />
                 </BarChart>
               </ResponsiveContainer>
             )}

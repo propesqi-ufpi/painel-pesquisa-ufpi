@@ -13,6 +13,10 @@ import FiltroSelect from '../components/FiltroSelect'
 import FiltroTexto from '../components/FiltroTexto'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
+import { alternarValor, opacidade } from '../utils/filtroCruzado'
+import { barraClicavel, valorDaFatia } from '../components/graficos/barraClicavel'
+import LegendaClicavel from '../components/graficos/LegendaClicavel'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
@@ -59,17 +63,17 @@ export default function ProducaoIntelectual() {
     getAnosProducao().then((data) => setAnosDisponiveis(data.map((a) => ({ value: String(a), label: String(a) })))).catch(() => {})
   }, [])
 
+  // Os gráficos por ano ignoram o filtro de ano: mostram todos os anos e destacam os selecionados.
   useEffect(() => {
     setLoadingGraficos(true)
-    const params = fa(filtroAno) ? { ano: filtroAno } : {}
     Promise.all([
-      getProducaoAnual({ tipo: 'PATENTE', ...params }),
-      getProducaoAnual({ tipo: 'SOFTWARE', ...params }),
+      getProducaoAnual({ tipo: 'PATENTE' }),
+      getProducaoAnual({ tipo: 'SOFTWARE' }),
     ])
       .then(([patentes, softwares]) => { setDadosPatentes(patentes); setDadosSoftwares(softwares) })
       .catch(() => {})
       .finally(() => setLoadingGraficos(false))
-  }, [filtroAno]) // eslint-disable-line
+  }, [])
 
   useEffect(() => {
     setLoadingVitrine(true)
@@ -83,6 +87,8 @@ export default function ProducaoIntelectual() {
       .catch(() => {})
       .finally(() => setLoadingVitrine(false))
   }, [filtroTipo, filtroAno, filtroInventor])
+
+  const alternarAno = (v) => setFiltroAno((atual) => alternarValor(atual, v))
 
   function limparFiltros() {
     setFiltroInventor('')
@@ -128,6 +134,7 @@ export default function ProducaoIntelectual() {
               <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
                 Patentes depositadas x Ano
               </h3>
+              <DicaFiltro />
               {loadingGraficos ? (
                 <div className="h-36 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
               ) : (
@@ -137,7 +144,7 @@ export default function ProducaoIntelectual() {
                     <XAxis type="number" tick={{ fontSize: 10 }} />
                     <YAxis type="category" dataKey="ano" width={44} tick={{ fontSize: 10 }} />
                     <Tooltip content={<TooltipGrafico />} />
-                    <Bar dataKey="depositadas" fill="#1E3A5F" radius={[0, 3, 3, 0]} />
+                    <Bar dataKey="depositadas" fill="#1E3A5F" radius={[0, 3, 3, 0]} shape={barraClicavel({ categoria: 'ano', selecionados: filtroAno, onAlternar: alternarAno })} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -152,18 +159,19 @@ export default function ProducaoIntelectual() {
               <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
                 Softwares Registrados x Ano
               </h3>
+              <DicaFiltro />
               {loadingGraficos ? (
                 <div className="h-36 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
               ) : (
                 <ResponsiveContainer width="100%" height={195}>
                   <PieChart>
-                    <Pie data={dadosSoftwares} dataKey="depositadas" nameKey="ano" cx="50%" cy="46%" outerRadius={58}>
-                      {dadosSoftwares.map((_, i) => (
-                        <Cell key={i} fill={CORES[i % CORES.length]} />
+                    <Pie data={dadosSoftwares} dataKey="depositadas" nameKey="ano" cx="50%" cy="46%" outerRadius={58} className="cursor-pointer" onClick={(d) => alternarAno(valorDaFatia(d, 'ano'))}>
+                      {dadosSoftwares.map((item, i) => (
+                        <Cell key={i} fill={CORES[i % CORES.length]} fillOpacity={opacidade(filtroAno, item.ano)} />
                       ))}
                     </Pie>
                     <Tooltip content={<TooltipGrafico total={totalSoftwares} />} />
-                    <Legend formatter={(value) => <span className="text-xs text-gray-700 dark:text-gray-300">{value}</span>} />
+                    <Legend content={<LegendaClicavel selecionados={filtroAno} onAlternar={alternarAno} />} />
                   </PieChart>
                 </ResponsiveContainer>
               )}

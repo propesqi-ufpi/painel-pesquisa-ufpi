@@ -15,6 +15,10 @@ import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconLaboratorios } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
+import { valorDaFatia } from '../components/graficos/barraClicavel'
+import LegendaClicavel from '../components/graficos/LegendaClicavel'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
   { key: 'nome',        label: 'NOME' },
@@ -73,7 +77,7 @@ export default function Laboratorios() {
 
   useEffect(() => {
     setLoadingGrafico(true)
-    getLaboratoriosPorCentro(filtrosAtivos).then(setDadosPorCentro).catch(() => {}).finally(() => setLoadingGrafico(false))
+    getLaboratoriosPorCentro(semChave(filtrosAtivos, 'centro_campi')).then(setDadosPorCentro).catch(() => {}).finally(() => setLoadingGrafico(false))
   }, [filtroNome, filtroCentro]) // eslint-disable-line
 
   useEffect(() => {
@@ -83,6 +87,10 @@ export default function Laboratorios() {
       .catch(() => {})
       .finally(() => setLoadingTabela(false))
   }, [filtroNome, filtroCentro]) // eslint-disable-line
+
+  // "Em branco" é o rótulo do backend para centro vazio; não é um valor filtrável.
+  const centroFiltravel = (v) => v !== 'Em branco'
+  const alternarCentro = (v) => { if (centroFiltravel(v)) setFiltroCentro((atual) => alternarValor(atual, v)) }
 
   function limparFiltros() {
     setFiltroNome([])
@@ -108,6 +116,7 @@ export default function Laboratorios() {
             <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-1">
               Nº de Laboratório x Centro/Campi
             </h3>
+            <DicaFiltro />
             {loadingGrafico ? (
               <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
             ) : (
@@ -117,6 +126,8 @@ export default function Laboratorios() {
                     data={dadosPorCentro}
                     dataKey="total"
                     nameKey="centro"
+                    className="cursor-pointer"
+                    onClick={(d) => alternarCentro(valorDaFatia(d, 'centro'))}
                     cx="40%"
                     cy="50%"
                     outerRadius={60}
@@ -125,13 +136,13 @@ export default function Laboratorios() {
                     }
                     labelLine
                   >
-                    {dadosPorCentro.map((_, i) => (
-                      <Cell key={i} fill={CORES_PIE[i % CORES_PIE.length]} />
+                    {dadosPorCentro.map((item, i) => (
+                      <Cell key={i} fill={CORES_PIE[i % CORES_PIE.length]} fillOpacity={opacidade(filtroCentro, item.centro)} />
                     ))}
                   </Pie>
                   <Tooltip content={<TooltipGrafico total={totalPie} />} />
-                  <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" iconSize={7}
-                    formatter={(value) => <span className="text-xs text-gray-700 dark:text-gray-300">{value}</span>}
+                  <Legend layout="vertical" align="right" verticalAlign="middle"
+                    content={<LegendaClicavel vertical selecionados={filtroCentro} onAlternar={alternarCentro} podeFiltrar={centroFiltravel} />}
                   />
                 </PieChart>
               </ResponsiveContainer>

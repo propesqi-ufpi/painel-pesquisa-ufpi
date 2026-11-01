@@ -16,6 +16,10 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconFomento, iconProjetos } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
+import { barraClicavel, valorDaFatia } from '../components/graficos/barraClicavel'
+import LegendaClicavel from '../components/graficos/LegendaClicavel'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const CORES_DONUT = ['#1E3A5F', '#4A90D9']
 
@@ -50,6 +54,7 @@ export default function ProjetosFinep() {
   const [filtroCentro,     setFiltroCentro]     = useState([])
   const [filtroNatureza,   setFiltroNatureza]   = useState([])
   const [filtroSituacao,   setFiltroSituacao]   = useState([])
+  const [filtroModalidade, setFiltroModalidade] = useState([])
 
   const [loadingKpis,     setLoadingKpis]     = useState(true)
   const [loadingGraficos, setLoadingGraficos] = useState(true)
@@ -63,6 +68,7 @@ export default function ProjetosFinep() {
     centro:      fa(filtroCentro),
     natureza:    fa(filtroNatureza),
     situacao:    fa(filtroSituacao),
+    modalidade:  fa(filtroModalidade),
   }
 
   useEffect(() => {
@@ -71,15 +77,19 @@ export default function ProjetosFinep() {
 
   useEffect(() => {
     getFiltrosFinep(filtrosAtivos).then(setOpcoes).catch(() => {})
-  }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroSituacao]) // eslint-disable-line
+  }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroSituacao, filtroModalidade]) // eslint-disable-line
 
   useEffect(() => {
     setLoadingGraficos(true)
-    Promise.all([getRelacaoTipoFinep(filtrosAtivos), getPorCentroFinep(filtrosAtivos)])
+    // Cada gráfico ignora o próprio filtro: mostra tudo e destaca o que está selecionado.
+    Promise.all([getRelacaoTipoFinep(semChave(filtrosAtivos, 'modalidade')), getPorCentroFinep(semChave(filtrosAtivos, 'centro'))])
       .then(([relacao, centro]) => { setDadosRelacao(relacao); setDadosPorCentro(centro) })
       .catch(() => {})
       .finally(() => setLoadingGraficos(false))
-  }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroSituacao]) // eslint-disable-line
+  }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroSituacao, filtroModalidade]) // eslint-disable-line
+
+  const alternarModalidade = (v) => setFiltroModalidade((atual) => alternarValor(atual, v))
+  const alternarCentro     = (v) => setFiltroCentro((atual) => alternarValor(atual, v))
 
   function limparFiltros() {
     setFiltroAnoInicio([])
@@ -87,6 +97,7 @@ export default function ProjetosFinep() {
     setFiltroCentro([])
     setFiltroNatureza([])
     setFiltroSituacao([])
+    setFiltroModalidade([])
   }
 
   const totalRelacao = dadosRelacao.reduce((s, d) => s + (d.total ?? 0), 0)
@@ -115,6 +126,7 @@ export default function ProjetosFinep() {
             <FiltroSelect label="Centro/Campi"   value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.centros)} />
             <FiltroSelect label="Natureza"       value={filtroNatureza}   onChange={setFiltroNatureza}   options={opcoesFiltro(opcoes.naturezas)} />
             <FiltroSelect label="Situação"       value={filtroSituacao}   onChange={setFiltroSituacao}   options={opcoesFiltro(opcoes.situacoes)} />
+            <FiltroSelect label="Modalidade"     value={filtroModalidade} onChange={setFiltroModalidade} options={opcoesFiltro(opcoes.modalidades)} />
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>
@@ -129,6 +141,7 @@ export default function ProjetosFinep() {
             <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
               Relação: Internos x Externos
             </h3>
+            <DicaFiltro />
             {loadingGraficos ? (
               <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
             ) : (
@@ -138,6 +151,8 @@ export default function ProjetosFinep() {
                     data={dadosRelacao}
                     dataKey="total"
                     nameKey="tipo"
+                    className="cursor-pointer"
+                    onClick={(d) => alternarModalidade(valorDaFatia(d, 'tipo'))}
                     cx="42%"
                     cy="50%"
                     innerRadius={55}
@@ -147,12 +162,12 @@ export default function ProjetosFinep() {
                     }
                     labelLine
                   >
-                    {dadosRelacao.map((_, i) => (
-                      <Cell key={i} fill={CORES_DONUT[i % CORES_DONUT.length]} />
+                    {dadosRelacao.map((item, i) => (
+                      <Cell key={i} fill={CORES_DONUT[i % CORES_DONUT.length]} fillOpacity={opacidade(filtroModalidade, item.tipo)} />
                     ))}
                   </Pie>
                   <Tooltip content={<TooltipGrafico total={totalRelacao} />} />
-                  <Legend formatter={(value) => <span className="text-xs text-gray-700 dark:text-gray-300">{value}</span>} />
+                  <Legend content={<LegendaClicavel selecionados={filtroModalidade} onAlternar={alternarModalidade} />} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -168,6 +183,7 @@ export default function ProjetosFinep() {
             <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
               Valor Total de Fomento por Centro/Campi
             </h3>
+            <DicaFiltro />
             {loadingGraficos ? (
               <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
             ) : (
@@ -177,7 +193,7 @@ export default function ProjetosFinep() {
                   <XAxis dataKey="centro" tick={{ fontSize: 10 }} />
                   <YAxis tickFormatter={formatarEixoMi} tick={{ fontSize: 9 }} width={62} />
                   <Tooltip content={<TooltipGrafico formatarValor={(v) => `R$ ${formatarMi(v)}`} />} />
-                  <Bar dataKey="valor_mi" fill="#2E5F8A" radius={[3, 3, 0, 0]}>
+                  <Bar dataKey="valor_mi" fill="#2E5F8A" radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })}>
                     <LabelList content={<BarLabelMi />} />
                   </Bar>
                 </BarChart>
