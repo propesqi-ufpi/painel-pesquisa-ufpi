@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 from app import models, schemas
+from app.filtros import em_lista
 from app.dependencies import get_db, verificar_autenticacao
 
 router = APIRouter(prefix="/grupos", tags=["Grupos de Pesquisa"])
@@ -10,8 +11,8 @@ _G = models.GrupoPesquisa
 
 
 def _filtrar_grupos(q, nomes=None, areas=None, anos_envio=None):
-    if nomes:      q = q.filter(or_(*[_G.nome_grupo.ilike(f"%{v}%") for v in nomes]))
-    if areas:      q = q.filter(or_(*[_G.area_predominante.ilike(f"%{v}%") for v in areas]))
+    if nomes:      q = q.filter(em_lista(_G.nome_grupo, nomes))
+    if areas:      q = q.filter(em_lista(_G.area_predominante, areas))
     if anos_envio: q = q.filter(or_(*[_G.ultimo_envio.ilike(f"%/{y}") for y in anos_envio]))
     return q
 
@@ -38,8 +39,8 @@ def grupos_filtros(
     _: dict = Depends(verificar_autenticacao),
 ):
     def _apply(q, exc=None):
-        if exc != 'nome_grupo'        and nome_grupo:        q = q.filter(or_(*[_G.nome_grupo.ilike(f"%{v}%") for v in nome_grupo]))
-        if exc != 'area_predominante' and area_predominante: q = q.filter(or_(*[_G.area_predominante.ilike(f"%{v}%") for v in area_predominante]))
+        if exc != 'nome_grupo'        and nome_grupo:        q = q.filter(em_lista(_G.nome_grupo, nome_grupo))
+        if exc != 'area_predominante' and area_predominante: q = q.filter(em_lista(_G.area_predominante, area_predominante))
         if exc != 'ultimo_envio'      and ultimo_envio:      q = q.filter(or_(*[_G.ultimo_envio.ilike(f"%/{y}") for y in ultimo_envio]))
         return q
 
@@ -91,7 +92,7 @@ def listar_grupos(
 ):
     q = _filtrar_grupos(db.query(_G), nome_grupo, area_predominante, ultimo_envio)
     if situacao:
-        q = q.filter(or_(*[_G.status.ilike(f"%{s}%") for s in situacao]))
+        q = q.filter(em_lista(_G.status, situacao))
     return q.offset(skip).limit(limit).all()
 
 

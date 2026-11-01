@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func, distinct, or_
+from sqlalchemy import func, distinct
 from sqlalchemy.orm import Session
 from app import models, schemas
+from app.filtros import em_lista
 from app.dependencies import get_db, verificar_autenticacao
 
 router = APIRouter(prefix="/incubadas", tags=["Empresas Incubadas"])
@@ -10,8 +11,8 @@ _E = models.EmpresaIncubada
 
 
 def _filtrar_incubadas(q, incubadoras=None, situacoes=None):
-    if incubadoras: q = q.filter(or_(*[_E.incubadora.ilike(f"%{v}%") for v in incubadoras]))
-    if situacoes:   q = q.filter(or_(*[_E.tipo_empresa.ilike(f"%{v}%") for v in situacoes]))
+    if incubadoras: q = q.filter(em_lista(_E.incubadora, incubadoras))
+    if situacoes:   q = q.filter(em_lista(_E.tipo_empresa, situacoes))
     return q
 
 
@@ -50,8 +51,8 @@ def incubadas_filtros(
     _: dict = Depends(verificar_autenticacao),
 ):
     def _apply(q, exc=None):
-        if exc != 'incubadora' and incubadora: q = q.filter(or_(*[_E.incubadora.ilike(f"%{v}%") for v in incubadora]))
-        if exc != 'situacao'   and situacao:   q = q.filter(or_(*[_E.tipo_empresa.ilike(f"%{v}%") for v in situacao]))
+        if exc != 'incubadora' and incubadora: q = q.filter(em_lista(_E.incubadora, incubadora))
+        if exc != 'situacao'   and situacao:   q = q.filter(em_lista(_E.tipo_empresa, situacao))
         return q
 
     def _vals(col, campo):
