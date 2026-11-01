@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getKPIsLaboratorios, getFiltrosLaboratorios, getLaboratoriosPorCentro, getLaboratorios } from '../api/index.js'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
@@ -87,6 +88,12 @@ export default function Laboratorios() {
 
   const totalPie = dadosPorCentro.reduce((s, d) => s + (d.total ?? 0), 0)
 
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Laboratório', valor: filtroNome, alterar: setFiltroNome, opcoes: opcoesFiltro(opcoes.nomes) },
+    { rotulo: 'Centro/Campi', valor: filtroCentro, alterar: setFiltroCentro, opcoes: opcoesFiltro(opcoes.centros) },
+  ]
+
   return (
     <div className="pagina">
 
@@ -119,12 +126,15 @@ export default function Laboratorios() {
         {/* Filtros */}
         <div className="lg:w-44 lg:flex-shrink-0">
           <div className="bg-superficie rounded-xl p-3 shadow-sm h-full space-y-2">
-            <FiltroSelect label="Laboratório"  value={filtroNome}   onChange={setFiltroNome}   options={opcoesFiltro(opcoes.nomes)} />
-            <FiltroSelect label="Centro/Campi" value={filtroCentro} onChange={setFiltroCentro} options={opcoesFiltro(opcoes.centros)} />
+            {campos.map((c) => (
+              <FiltroSelect key={c.rotulo} label={c.rotulo} value={c.valor} onChange={c.alterar} options={c.opcoes} />
+            ))}
             <BotaoLimparFiltros onClick={limparFiltros} />
           </div>
         </div>
       </div>
+
+      <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
 
       {/* ── Tabela ── */}
       <div className="cartao-tabela">

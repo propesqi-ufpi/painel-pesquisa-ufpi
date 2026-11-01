@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { getKPIsProjetosPDI, getFiltrosPDI, getPorAreaPDI, getPorCentroPDI, getProjetosPDI } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
@@ -91,6 +92,16 @@ export default function ProjetosPDI() {
     setFiltroSituacao([])
   }
 
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Ano Início', valor: filtroAnoInicio, alterar: setFiltroAnoInicio, opcoes: opcoesFiltro(opcoes.anos_inicio) },
+    { rotulo: 'Ano Término', valor: filtroAnoTermino, alterar: setFiltroAnoTermino, opcoes: opcoesFiltro(opcoes.anos_termino) },
+    { rotulo: 'Centro/Campi', valor: filtroCentro, alterar: setFiltroCentro, opcoes: opcoesFiltro(opcoes.centros) },
+    { rotulo: 'Natureza', valor: filtroNatureza, alterar: setFiltroNatureza, opcoes: opcoesFiltro(opcoes.naturezas) },
+    { rotulo: 'Área', valor: filtroArea, alterar: setFiltroArea, opcoes: opcoesFiltro(opcoes.areas) },
+    { rotulo: 'Situação', valor: filtroSituacao, alterar: setFiltroSituacao, opcoes: opcoesFiltro(opcoes.situacoes) },
+  ]
+
   return (
     <div className="pagina">
 
@@ -112,16 +123,15 @@ export default function ProjetosPDI() {
         {/* Filtros */}
         <div className="lg:flex-1 bg-superficie rounded-xl p-3 shadow-sm">
           <div className="grade-filtros">
-            <FiltroSelect label="Ano Início"   value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={opcoesFiltro(opcoes.anos_inicio)} />
-            <FiltroSelect label="Ano Término"  value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={opcoesFiltro(opcoes.anos_termino)} />
-            <FiltroSelect label="Centro/Campi" value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.centros)} />
-            <FiltroSelect label="Natureza"     value={filtroNatureza}   onChange={setFiltroNatureza}   options={opcoesFiltro(opcoes.naturezas)} />
-            <FiltroSelect label="Área"         value={filtroArea}       onChange={setFiltroArea}       options={opcoesFiltro(opcoes.areas)} />
-            <FiltroSelect label="Situação"     value={filtroSituacao}   onChange={setFiltroSituacao}   options={opcoesFiltro(opcoes.situacoes)} />
+            {campos.map((c) => (
+              <FiltroSelect key={c.rotulo} label={c.rotulo} value={c.valor} onChange={c.alterar} options={c.opcoes} />
+            ))}
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>
       </div>
+
+      <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
 
       {/* ── Linha 2: Gráficos + Tabela ── */}
       <div className="pagina-corpo">

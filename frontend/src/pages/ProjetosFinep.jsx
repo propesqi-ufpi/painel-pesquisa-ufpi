@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recha
 import { getKPIsFinep, getFiltrosFinep, getRelacaoTipoFinep, getPorCentroFinep } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TooltipGrafico from '../components/TooltipGrafico'
@@ -84,6 +85,16 @@ export default function ProjetosFinep() {
 
   const totalRelacao = dadosRelacao.reduce((s, d) => s + (d.total ?? 0), 0)
 
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Ano de Início', valor: filtroAnoInicio, alterar: setFiltroAnoInicio, opcoes: opcoesFiltro(opcoes.anos_inicio) },
+    { rotulo: 'Ano de Término', valor: filtroAnoTermino, alterar: setFiltroAnoTermino, opcoes: opcoesFiltro(opcoes.anos_termino) },
+    { rotulo: 'Centro/Campi', valor: filtroCentro, alterar: setFiltroCentro, opcoes: opcoesFiltro(opcoes.centros) },
+    { rotulo: 'Natureza', valor: filtroNatureza, alterar: setFiltroNatureza, opcoes: opcoesFiltro(opcoes.naturezas) },
+    { rotulo: 'Situação', valor: filtroSituacao, alterar: setFiltroSituacao, opcoes: opcoesFiltro(opcoes.situacoes) },
+    { rotulo: 'Modalidade', valor: filtroModalidade, alterar: setFiltroModalidade, opcoes: opcoesFiltro(opcoes.modalidades) },
+  ]
+
   return (
     <div className="pagina">
 
@@ -103,16 +114,15 @@ export default function ProjetosFinep() {
 
         <div className="lg:flex-1 bg-superficie rounded-xl p-3 shadow-sm">
           <div className="grade-filtros">
-            <FiltroSelect label="Ano de Início"  value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={opcoesFiltro(opcoes.anos_inicio)} />
-            <FiltroSelect label="Ano de Término" value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={opcoesFiltro(opcoes.anos_termino)} />
-            <FiltroSelect label="Centro/Campi"   value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.centros)} />
-            <FiltroSelect label="Natureza"       value={filtroNatureza}   onChange={setFiltroNatureza}   options={opcoesFiltro(opcoes.naturezas)} />
-            <FiltroSelect label="Situação"       value={filtroSituacao}   onChange={setFiltroSituacao}   options={opcoesFiltro(opcoes.situacoes)} />
-            <FiltroSelect label="Modalidade"     value={filtroModalidade} onChange={setFiltroModalidade} options={opcoesFiltro(opcoes.modalidades)} />
+            {campos.map((c) => (
+              <FiltroSelect key={c.rotulo} label={c.rotulo} value={c.valor} onChange={c.alterar} options={c.opcoes} />
+            ))}
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>
       </div>
+
+      <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
 
       {/* ── Linha 2: Donut + Barras ── */}
       <div className="pagina-corpo">

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getKPIsBolsistas, getFiltrosBolsistas, getBolsistasPorCampus } from '../api/index.js'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
@@ -70,6 +71,14 @@ export default function Bolsistas() {
 
   const totalCampus = dadosPorCampus.reduce((s, d) => s + (d.total ?? 0), 0)
 
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Modalidade', valor: filtroModalidade, alterar: setFiltroModalidade, opcoes: opcoesFiltro(opcoes.modalidades) },
+    { rotulo: 'Órgão', valor: filtroOrgao, alterar: setFiltroOrgao, opcoes: opcoesFiltro(opcoes.orgaos) },
+    { rotulo: 'Centro/Campus', valor: filtroCentro, alterar: setFiltroCentro, opcoes: opcoesFiltro(opcoes.campi) },
+    { rotulo: 'Nome', valor: filtroNome, alterar: setFiltroNome, opcoes: opcoesFiltro(opcoes.nomes, { tipo: 'pessoa' }) },
+  ]
+
   return (
     <div className="pagina">
 
@@ -83,14 +92,15 @@ export default function Bolsistas() {
 
         <div className="lg:flex-1 bg-superficie rounded-xl p-3 shadow-sm">
           <div className="grade-filtros lg:grid-cols-4">
-            <FiltroSelect label="Modalidade"    value={filtroModalidade} onChange={setFiltroModalidade} options={opcoesFiltro(opcoes.modalidades)} />
-            <FiltroSelect label="Órgão"         value={filtroOrgao}      onChange={setFiltroOrgao}      options={opcoesFiltro(opcoes.orgaos)} />
-            <FiltroSelect label="Centro/Campus" value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.campi)} />
-            <FiltroSelect label="Nome"          value={filtroNome}       onChange={setFiltroNome}       options={opcoesFiltro(opcoes.nomes, { tipo: 'pessoa' })} />
+            {campos.map((c) => (
+              <FiltroSelect key={c.rotulo} label={c.rotulo} value={c.valor} onChange={c.alterar} options={c.opcoes} />
+            ))}
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>
       </div>
+
+      <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
 
       {/* ── Gráfico por campus ── */}
       <div className="lg:flex-1 lg:min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
