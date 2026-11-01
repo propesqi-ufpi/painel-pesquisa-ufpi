@@ -43,11 +43,11 @@ export default function Cadastro() {
   }
 
   return (
-    <div className="min-h-screen bg-azul-escuro flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="min-h-screen bg-faixa flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-superficie rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Cabeçalho */}
-        <div className="bg-azul-escuro px-8 py-7 text-center">
+        <div className="bg-faixa px-8 py-7 text-center">
           <h1 className="text-white text-xl font-bold leading-tight">
             Criar Conta
           </h1>
@@ -56,14 +56,14 @@ export default function Cadastro() {
 
         {sucesso ? (
           <div className="px-8 py-10 text-center space-y-3">
-            <p className="text-green-600 font-semibold">Cadastro realizado com sucesso!</p>
-            <p className="text-sm text-gray-500">Redirecionando para o login…</p>
+            <p className="text-verde font-semibold">Cadastro realizado com sucesso!</p>
+            <p className="text-sm text-texto-suave">Redirecionando para o login…</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="px-8 py-8 space-y-5">
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="username" className="text-sm font-medium text-gray-700">
+              <label htmlFor="username" className="text-sm font-medium text-texto">
                 Usuário
               </label>
               <input
@@ -73,12 +73,12 @@ export default function Cadastro() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 autoComplete="username"
-                className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-azul-medio"
+                className="border border-borda rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-azul"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="text-sm font-medium text-texto">
                 Senha
               </label>
               <input
@@ -88,12 +88,12 @@ export default function Cadastro() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-azul-medio"
+                className="border border-borda rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-azul"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="confirmar" className="text-sm font-medium text-gray-700">
+              <label htmlFor="confirmar" className="text-sm font-medium text-texto">
                 Confirmar Senha
               </label>
               <input
@@ -103,14 +103,14 @@ export default function Cadastro() {
                 onChange={(e) => setConfirmar(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-azul-medio"
+                className="border border-borda rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-azul"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-azul-btn text-white rounded-lg py-2.5 text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
+              className="w-full bg-azul text-sobre-azul rounded-lg py-2.5 text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
             >
               {loading ? (
                 <>
@@ -123,16 +123,16 @@ export default function Cadastro() {
             </button>
 
             {erro && (
-              <p className="text-red-500 text-xs text-center">{erro}</p>
+              <p className="text-perigo text-xs text-center">{erro}</p>
             )}
           </form>
         )}
 
         {/* Rodapé */}
         <div className="px-8 pb-7 text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-texto-suave">
             Já tem conta?{' '}
-            <Link to="/login" className="text-azul-medio font-medium hover:underline">
+            <Link to="/login" className="text-azul font-medium hover:underline">
               Fazer login
             </Link>
           </p>

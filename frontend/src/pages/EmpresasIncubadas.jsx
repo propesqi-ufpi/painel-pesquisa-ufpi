@@ -16,6 +16,7 @@ import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconIncubadas, iconGraduadas, iconInbate } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { useCoresGrafico, useCorPorCategoria } from '../utils/coresGrafico'
 import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
 import { valorDaFatia } from '../components/graficos/barraClicavel'
 import LegendaClicavel from '../components/graficos/LegendaClicavel'
@@ -29,14 +30,13 @@ const COLUNAS = [
   { key: 'incubadora',     label: 'INCUBADORA' },
 ]
 
-const CORES_DONUT = [
-  '#1E3A5F', '#4A90D9', '#2E5F8A', '#7AB3E0', '#A8D1F0',
-]
 
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function EmpresasIncubadas() {
+  const cores = useCoresGrafico()
+  const corDe = useCorPorCategoria(cores)
   const [kpis,               setKpis]               = useState({})
   const [opcoes,             setOpcoes]             = useState({})
   const [dadosPorIncubadora, setDadosPorIncubadora] = useState([])
@@ -105,7 +105,7 @@ export default function EmpresasIncubadas() {
         </div>
 
         <div className="w-56 flex-shrink-0">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm space-y-2">
+          <div className="bg-superficie rounded-xl p-3 shadow-sm space-y-2">
             <div className="flex gap-2 items-end">
               <FiltroSelect
                 label="Incubadora"
@@ -125,18 +125,20 @@ export default function EmpresasIncubadas() {
       <div className="flex-1 min-h-0 grid grid-cols-2 gap-3">
 
         {/* Donut */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
           <div ref={refGrafico}>
-            <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+            <h3 className="text-xs font-semibold text-center text-texto mb-2">
               Número de Empresas Incubadas por Incubadora
             </h3>
             <DicaFiltro />
             {loadingGrafico ? (
-              <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+              <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie
+                    stroke={cores.superficie}
+                    strokeWidth={2}
                     data={dadosPorIncubadora}
                     dataKey="total"
                     nameKey="incubadora"
@@ -152,10 +154,10 @@ export default function EmpresasIncubadas() {
                     labelLine
                   >
                     {dadosPorIncubadora.map((item, i) => (
-                      <Cell key={i} fill={CORES_DONUT[i % CORES_DONUT.length]} fillOpacity={opacidade(filtroIncubadora, item.incubadora)} />
+                      <Cell key={i} fill={corDe(item.incubadora)} fillOpacity={opacidade(filtroIncubadora, item.incubadora)} />
                     ))}
                   </Pie>
-                  <Tooltip content={<TooltipGrafico total={totalDonut} />} />
+                  <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico total={totalDonut} />} />
                   <Legend layout="vertical" align="right" verticalAlign="middle"
                     content={<LegendaClicavel vertical selecionados={filtroIncubadora} onAlternar={alternarIncubadora} />}
                   />
@@ -169,9 +171,9 @@ export default function EmpresasIncubadas() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col min-h-0">
+        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col min-h-0">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
-            <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+            <h3 className="text-xs font-semibold text-texto">
               Informações das Empresas
             </h3>
             <BotaoExportarCSV dados={incubadas} nomeArquivo="incubadas" colunas={COLUNAS} />

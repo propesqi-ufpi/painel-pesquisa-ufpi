@@ -21,7 +21,7 @@ export default function LegendaClicavel({
         const conteudo = (
           <>
             <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: item.color }} aria-hidden="true" />
-            <span className="text-xs text-gray-600 dark:text-gray-300">{valor}</span>
+            <span className="text-xs text-texto-suave">{valor}</span>
           </>
         )
         return (
@@ -31,7 +31,7 @@ export default function LegendaClicavel({
                 type="button"
                 aria-pressed={ativo}
                 onClick={() => onAlternar(valor)}
-                className={`flex items-center gap-1.5 rounded px-1 text-left hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-azul-medio ${ativo ? 'font-semibold' : ''}`}
+                className={`flex items-center gap-1.5 rounded px-1 text-left hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-azul ${ativo ? 'font-semibold' : ''}`}
               >
                 {conteudo}
               </button>

@@ -2,7 +2,7 @@ export default function TooltipGrafico({ active, payload, label, formatarValor, 
   if (!active || !payload?.length) return null
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm">
+    <div className="bg-superficie border border-borda rounded-lg shadow-lg p-3 text-sm">
       <p className="font-bold mb-1">{label}</p>
       {payload.map((item, i) => {
         const pct =

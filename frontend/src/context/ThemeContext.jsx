@@ -33,3 +33,8 @@ export function useTheme() {
   if (!ctx) throw new Error('useTheme deve ser usado dentro de ThemeProvider')
   return ctx
 }
+
+/** Tema escuro ativo? Não exige o provider (fora dele, considera claro). */
+export function useEhEscuro() {
+  return useContext(ThemeContext)?.dark ?? false
+}

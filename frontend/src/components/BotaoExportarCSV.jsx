@@ -36,7 +36,7 @@ export default function BotaoExportarCSV({ dados = [], nomeArquivo = 'export', c
   return (
     <button
       onClick={exportar}
-      className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+      className="px-2 py-1 text-xs border border-borda rounded hover:bg-azul-suave transition-colors"
     >
       ⬇ CSV
     </button>

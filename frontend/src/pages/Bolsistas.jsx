@@ -11,16 +11,12 @@ import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { opcoesFiltro } from '../utils/exibicao'
+import { useCoresGrafico, useCorPorCategoria } from '../utils/coresGrafico'
 import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
 import { valorDaFatia } from '../components/graficos/barraClicavel'
 import LegendaClicavel from '../components/graficos/LegendaClicavel'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
-const CORES_CAMPUS = [
-  '#1E3A5F', '#2E5F8A', '#4A90D9', '#E74C3C', '#F39C12',
-  '#2ECC71', '#9B59B6', '#1ABC9C', '#E67E22', '#3498DB',
-  '#D35400', '#27AE60', '#8E44AD', '#16A085', '#C0392B',
-]
 
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
@@ -28,7 +24,7 @@ function fa(arr) { return arr.length > 0 ? arr : undefined }
 function CardGrande({ titulo, valor, loading }) {
   if (loading) return <SkeletonCard />
   return (
-    <div className="h-full bg-azul-escuro text-white rounded-xl px-4 py-4 flex flex-col items-center justify-center text-center">
+    <div className="h-full bg-faixa text-white rounded-xl px-4 py-4 flex flex-col items-center justify-center text-center">
       <p className="text-sm font-bold uppercase tracking-widest opacity-80">{titulo}</p>
       <p className="text-4xl font-bold mt-2">{valor ?? '—'}</p>
     </div>
@@ -36,6 +32,8 @@ function CardGrande({ titulo, valor, loading }) {
 }
 
 export default function Bolsistas() {
+  const cores = useCoresGrafico()
+  const corDe = useCorPorCategoria(cores)
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCampus, setDadosPorCampus] = useState([])
@@ -95,7 +93,7 @@ export default function Bolsistas() {
           <CardGrande titulo="UFPI" valor={kpis.total_ufpi} loading={loadingKpis} />
         </div>
 
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <FiltroSelect label="Modalidade"    value={filtroModalidade} onChange={setFiltroModalidade} options={opcoesFiltro(opcoes.modalidades)} />
             <FiltroSelect label="Órgão"         value={filtroOrgao}      onChange={setFiltroOrgao}      options={opcoesFiltro(opcoes.orgaos)} />
@@ -107,18 +105,20 @@ export default function Bolsistas() {
       </div>
 
       {/* ── Gráfico pizza ── */}
-      <div className="flex-1 min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+      <div className="flex-1 min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
         <div ref={refGrafico} className="flex-1 min-h-0">
-          <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+          <h3 className="text-xs font-semibold text-center text-texto mb-2">
             Bolsistas por Campus/Centro
           </h3>
           <DicaFiltro />
           {loadingGrafico ? (
-            <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+            <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
           ) : (
             <ResponsiveContainer width="100%" height="90%">
               <PieChart>
                 <Pie
+                  stroke={cores.superficie}
+                  strokeWidth={2}
                   data={dadosPorCampus}
                   dataKey="total"
                   nameKey="campus"
@@ -133,10 +133,10 @@ export default function Bolsistas() {
                   labelLine
                 >
                   {dadosPorCampus.map((item, i) => (
-                    <Cell key={i} fill={CORES_CAMPUS[i % CORES_CAMPUS.length]} fillOpacity={opacidade(filtroCentro, item.campus)} />
+                    <Cell key={i} fill={corDe(item.campus)} fillOpacity={opacidade(filtroCentro, item.campus)} />
                   ))}
                 </Pie>
-                <Tooltip content={<TooltipGrafico total={totalCampus} />} />
+                <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico total={totalCampus} />} />
                 <Legend
                   layout="vertical"
                   align="right"

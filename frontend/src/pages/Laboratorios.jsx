@@ -15,6 +15,7 @@ import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconLaboratorios } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { useCoresGrafico, useCorPorCategoria } from '../utils/coresGrafico'
 import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
 import { valorDaFatia } from '../components/graficos/barraClicavel'
 import LegendaClicavel from '../components/graficos/LegendaClicavel'
@@ -28,10 +29,6 @@ const COLUNAS = [
   { key: 'email',       label: 'EMAIL' },
 ]
 
-const CORES_PIE = [
-  '#7AB3E0', '#1E3A5F', '#4A90D9', '#2E5F8A', '#0D2B4A',
-  '#A8D1F0', '#3D7DB5', '#6BA3CE', '#9BC4E3', '#1A4F7A',
-]
 
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
@@ -39,7 +36,7 @@ function fa(arr) { return arr.length > 0 ? arr : undefined }
 function CardLabs({ valor, loading }) {
   if (loading) return <SkeletonCard />
   return (
-    <div className="h-full bg-azul-escuro text-white rounded-xl px-4 py-4 flex flex-col items-center justify-center text-center">
+    <div className="h-full bg-faixa text-white rounded-xl px-4 py-4 flex flex-col items-center justify-center text-center">
       <p className="text-xs font-bold uppercase tracking-wide opacity-80">Laboratórios</p>
       <img src={iconLaboratorios} alt="" className="w-7 h-7 object-contain mt-2 opacity-90" />
       <p className="text-3xl font-bold mt-2">{valor ?? '—'}</p>
@@ -48,6 +45,8 @@ function CardLabs({ valor, loading }) {
 }
 
 export default function Laboratorios() {
+  const cores = useCoresGrafico()
+  const corDe = useCorPorCategoria(cores)
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCentro, setDadosPorCentro] = useState([])
@@ -111,18 +110,20 @@ export default function Laboratorios() {
         </div>
 
         {/* Gráfico pizza */}
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
           <div ref={refGrafico}>
-            <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-1">
+            <h3 className="text-xs font-semibold text-center text-texto mb-1">
               Nº de Laboratório x Centro/Campi
             </h3>
             <DicaFiltro />
             {loadingGrafico ? (
-              <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+              <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
               <ResponsiveContainer width="100%" height={215}>
                 <PieChart>
                   <Pie
+                    stroke={cores.superficie}
+                    strokeWidth={2}
                     data={dadosPorCentro}
                     dataKey="total"
                     nameKey="centro"
@@ -137,10 +138,10 @@ export default function Laboratorios() {
                     labelLine
                   >
                     {dadosPorCentro.map((item, i) => (
-                      <Cell key={i} fill={CORES_PIE[i % CORES_PIE.length]} fillOpacity={opacidade(filtroCentro, item.centro)} />
+                      <Cell key={i} fill={centroFiltravel(item.centro) ? corDe(item.centro) : cores.outros} fillOpacity={opacidade(filtroCentro, item.centro)} />
                     ))}
                   </Pie>
-                  <Tooltip content={<TooltipGrafico total={totalPie} />} />
+                  <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico total={totalPie} />} />
                   <Legend layout="vertical" align="right" verticalAlign="middle"
                     content={<LegendaClicavel vertical selecionados={filtroCentro} onAlternar={alternarCentro} podeFiltrar={centroFiltravel} />}
                   />
@@ -155,7 +156,7 @@ export default function Laboratorios() {
 
         {/* Filtros */}
         <div className="w-44 flex-shrink-0">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm h-full space-y-2">
+          <div className="bg-superficie rounded-xl p-3 shadow-sm h-full space-y-2">
             <FiltroSelect label="Laboratório"  value={filtroNome}   onChange={setFiltroNome}   options={opcoesFiltro(opcoes.nomes)} />
             <FiltroSelect label="Centro/Campi" value={filtroCentro} onChange={setFiltroCentro} options={opcoesFiltro(opcoes.centros)} />
             <BotaoLimparFiltros onClick={limparFiltros} />
@@ -164,9 +165,9 @@ export default function Laboratorios() {
       </div>
 
       {/* ── Tabela ── */}
-      <div className="flex-1 min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+      <div className="flex-1 min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
-          <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+          <h3 className="text-xs font-semibold text-texto">
             Informações dos Laboratórios
           </h3>
           <BotaoExportarCSV dados={labs} nomeArquivo="laboratorios" colunas={COLUNAS} />

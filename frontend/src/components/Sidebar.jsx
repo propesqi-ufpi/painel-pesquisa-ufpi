@@ -24,7 +24,7 @@ const linkClass = ({ isActive }) =>
   [
     'flex items-center gap-3 px-4 py-3 text-sm transition-colors border-l-[3px]',
     isActive
-      ? 'bg-azul-medio text-white border-white'
+      ? 'bg-white/10 text-white border-ouro font-medium'
       : 'text-white/70 border-transparent hover:bg-white/10',
   ].join(' ')
 
@@ -50,7 +50,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
       <aside
         className={[
-          'fixed inset-y-0 left-0 z-50 w-64 bg-azul-escuro flex flex-col',
+          'fixed inset-y-0 left-0 z-50 w-64 bg-faixa flex flex-col',
           'transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : '-translate-x-full',
           'md:static md:translate-x-0 md:z-auto',
