@@ -15,11 +15,12 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconIncubadas, iconGraduadas, iconInbate } from '../assets/icons.js'
+import { opcoesFiltro } from '../utils/exibicao'
 
 const COLUNAS = [
   { key: 'nome_projeto',   label: 'NOME DO PROJETO' },
   { key: 'objetivo',       label: 'OBJETIVO' },
-  { key: 'equipe_projeto', label: 'EQUIPE DO PROJETO' },
+  { key: 'equipe_projeto', label: 'EQUIPE DO PROJETO', tipo: 'pessoas' },
   { key: 'contato',        label: 'CONTATO' },
   { key: 'incubadora',     label: 'INCUBADORA' },
 ]
@@ -28,9 +29,6 @@ const CORES_DONUT = [
   '#1E3A5F', '#4A90D9', '#2E5F8A', '#7AB3E0', '#A8D1F0',
 ]
 
-function toOpts(arr = []) {
-  return arr.map((v) => ({ value: String(v), label: String(v) }))
-}
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
@@ -107,12 +105,12 @@ export default function EmpresasIncubadas() {
                 label="Incubadora"
                 value={filtroIncubadora}
                 onChange={setFiltroIncubadora}
-                options={toOpts(opcoes.incubadoras)}
+                options={opcoesFiltro(opcoes.incubadoras)}
                 className="flex-1"
               />
               <BotaoLimparFiltros onClick={limparFiltros} />
             </div>
-            <FiltroSelect label="Situação" value={filtroSituacao} onChange={setFiltroSituacao} options={toOpts(opcoes.situacoes)} />
+            <FiltroSelect label="Situação" value={filtroSituacao} onChange={setFiltroSituacao} options={opcoesFiltro(opcoes.situacoes)} />
           </div>
         </div>
       </div>

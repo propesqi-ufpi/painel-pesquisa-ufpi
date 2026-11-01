@@ -16,11 +16,12 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconConcluidos, iconEmAndamento } from '../assets/icons.js'
+import { opcoesFiltro } from '../utils/exibicao'
 
 const COLUNAS = [
   { key: 'titulo',      label: 'PROJETOS' },
   { key: 'centro',      label: 'CENTRO' },
-  { key: 'coordenador', label: 'COORDENADORES' },
+  { key: 'coordenador', label: 'COORDENADORES', tipo: 'pessoas' },
   { key: 'natureza',    label: 'NATUREZA' },
   { key: 'situacao',    label: 'SITUAÇÃO' },
   { key: 'area',        label: 'ÁREA DO CONHECIMENTO' },
@@ -45,9 +46,6 @@ function formatarEixoY(v) {
   return String(v)
 }
 
-function toOpts(arr = []) {
-  return arr.map((v) => ({ value: String(v), label: String(v) }))
-}
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
@@ -135,12 +133,12 @@ export default function ProjetosPDI() {
         {/* Filtros */}
         <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
           <div className="grid grid-cols-3 xl:grid-cols-4 gap-2">
-            <FiltroSelect label="Ano Início"   value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={toOpts(opcoes.anos_inicio)} />
-            <FiltroSelect label="Ano Término"  value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={toOpts(opcoes.anos_termino)} />
-            <FiltroSelect label="Centro/Campi" value={filtroCentro}     onChange={setFiltroCentro}     options={toOpts(opcoes.centros)} />
-            <FiltroSelect label="Natureza"     value={filtroNatureza}   onChange={setFiltroNatureza}   options={toOpts(opcoes.naturezas)} />
-            <FiltroSelect label="Área"         value={filtroArea}       onChange={setFiltroArea}       options={toOpts(opcoes.areas)} />
-            <FiltroSelect label="Situação"     value={filtroSituacao}   onChange={setFiltroSituacao}   options={toOpts(opcoes.situacoes)} />
+            <FiltroSelect label="Ano Início"   value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={opcoesFiltro(opcoes.anos_inicio)} />
+            <FiltroSelect label="Ano Término"  value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={opcoesFiltro(opcoes.anos_termino)} />
+            <FiltroSelect label="Centro/Campi" value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.centros)} />
+            <FiltroSelect label="Natureza"     value={filtroNatureza}   onChange={setFiltroNatureza}   options={opcoesFiltro(opcoes.naturezas)} />
+            <FiltroSelect label="Área"         value={filtroArea}       onChange={setFiltroArea}       options={opcoesFiltro(opcoes.areas)} />
+            <FiltroSelect label="Situação"     value={filtroSituacao}   onChange={setFiltroSituacao}   options={opcoesFiltro(opcoes.situacoes)} />
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>

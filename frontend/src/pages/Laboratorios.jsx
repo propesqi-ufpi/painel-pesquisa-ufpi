@@ -14,12 +14,13 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconLaboratorios } from '../assets/icons.js'
+import { opcoesFiltro } from '../utils/exibicao'
 
 const COLUNAS = [
   { key: 'nome',        label: 'NOME' },
   { key: 'sigla',       label: 'SIGLA' },
   { key: 'centro_campi', label: 'CENTRO/CAMPI' },
-  { key: 'responsavel', label: 'RESPONSÁVEL' },
+  { key: 'responsavel', label: 'RESPONSÁVEL', tipo: 'pessoas' },
   { key: 'email',       label: 'EMAIL' },
 ]
 
@@ -28,9 +29,6 @@ const CORES_PIE = [
   '#A8D1F0', '#3D7DB5', '#6BA3CE', '#9BC4E3', '#1A4F7A',
 ]
 
-function toOpts(arr = []) {
-  return arr.map((v) => ({ value: String(v), label: String(v) }))
-}
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
@@ -147,8 +145,8 @@ export default function Laboratorios() {
         {/* Filtros */}
         <div className="w-44 flex-shrink-0">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm h-full space-y-2">
-            <FiltroSelect label="Laboratório"  value={filtroNome}   onChange={setFiltroNome}   options={toOpts(opcoes.nomes)} />
-            <FiltroSelect label="Centro/Campi" value={filtroCentro} onChange={setFiltroCentro} options={toOpts(opcoes.centros)} />
+            <FiltroSelect label="Laboratório"  value={filtroNome}   onChange={setFiltroNome}   options={opcoesFiltro(opcoes.nomes)} />
+            <FiltroSelect label="Centro/Campi" value={filtroCentro} onChange={setFiltroCentro} options={opcoesFiltro(opcoes.centros)} />
             <BotaoLimparFiltros onClick={limparFiltros} />
           </div>
         </div>

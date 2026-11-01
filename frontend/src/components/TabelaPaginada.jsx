@@ -1,4 +1,20 @@
 import SkeletonTabela from './SkeletonTabela'
+import { valorExibicao, VAZIO } from '../utils/exibicao'
+
+function Celula({ coluna, linha }) {
+  const valor = valorExibicao(coluna, linha)
+  const bruto = linha[coluna.key]
+  // Quando a limpeza muda o texto, o valor original da planilha fica no tooltip.
+  const original = bruto != null && String(bruto).trim() !== String(valor ?? '') ? String(bruto) : undefined
+
+  return (
+    <td title={original} className="text-xs py-1.5 px-3 dark:text-gray-200">
+      {coluna.render
+        ? coluna.render(valor, linha)
+        : valor ?? <span className="text-gray-400 dark:text-gray-500" aria-label="Não informado">{VAZIO}</span>}
+    </td>
+  )
+}
 
 export default function TabelaPaginada({
   colunas = [],
@@ -43,9 +59,7 @@ export default function TabelaPaginada({
                   } hover:bg-azul-claro dark:hover:bg-gray-700 transition-colors`}
                 >
                   {colunas.map((col) => (
-                    <td key={col.key} className="text-xs py-1.5 px-3 dark:text-gray-200">
-                      {col.render ? col.render(linha[col.key], linha) : linha[col.key]}
-                    </td>
+                    <Celula key={col.key} coluna={col} linha={linha} />
                   ))}
                 </tr>
               ))

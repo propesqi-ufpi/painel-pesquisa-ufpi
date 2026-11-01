@@ -1,3 +1,5 @@
+import { valorExibicao } from '../utils/exibicao'
+
 function dataHoje() {
   const d = new Date()
   return [
@@ -18,7 +20,7 @@ export default function BotaoExportarCSV({ dados = [], nomeArquivo = 'export', c
   function exportar() {
     const header = colunas.map((c) => c.label).join(',')
     const linhas = dados.map((linha) =>
-      colunas.map((c) => escaparCelula(linha[c.key])).join(',')
+      colunas.map((c) => escaparCelula(valorExibicao(c, linha))).join(',')
     )
     const csv = [header, ...linhas].join('\n')
 

@@ -15,12 +15,10 @@ import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconFomento, iconProjetos } from '../assets/icons.js'
+import { opcoesFiltro } from '../utils/exibicao'
 
 const CORES_DONUT = ['#1E3A5F', '#4A90D9']
 
-function toOpts(arr = []) {
-  return arr.map((v) => ({ value: String(v), label: String(v) }))
-}
 
 function formatarMi(v) {
   if (v == null) return '-'
@@ -112,11 +110,11 @@ export default function ProjetosFinep() {
 
         <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
           <div className="grid grid-cols-3 xl:grid-cols-4 gap-2">
-            <FiltroSelect label="Ano de Início"  value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={toOpts(opcoes.anos_inicio)} />
-            <FiltroSelect label="Ano de Término" value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={toOpts(opcoes.anos_termino)} />
-            <FiltroSelect label="Centro/Campi"   value={filtroCentro}     onChange={setFiltroCentro}     options={toOpts(opcoes.centros)} />
-            <FiltroSelect label="Natureza"       value={filtroNatureza}   onChange={setFiltroNatureza}   options={toOpts(opcoes.naturezas)} />
-            <FiltroSelect label="Situação"       value={filtroSituacao}   onChange={setFiltroSituacao}   options={toOpts(opcoes.situacoes)} />
+            <FiltroSelect label="Ano de Início"  value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={opcoesFiltro(opcoes.anos_inicio)} />
+            <FiltroSelect label="Ano de Término" value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={opcoesFiltro(opcoes.anos_termino)} />
+            <FiltroSelect label="Centro/Campi"   value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.centros)} />
+            <FiltroSelect label="Natureza"       value={filtroNatureza}   onChange={setFiltroNatureza}   options={opcoesFiltro(opcoes.naturezas)} />
+            <FiltroSelect label="Situação"       value={filtroSituacao}   onChange={setFiltroSituacao}   options={opcoesFiltro(opcoes.situacoes)} />
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>
