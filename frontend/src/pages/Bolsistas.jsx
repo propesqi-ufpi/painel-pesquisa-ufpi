@@ -10,6 +10,7 @@ import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
+import { opcoesFiltro } from '../utils/exibicao'
 
 const CORES_CAMPUS = [
   '#1E3A5F', '#2E5F8A', '#4A90D9', '#E74C3C', '#F39C12',
@@ -17,9 +18,6 @@ const CORES_CAMPUS = [
   '#D35400', '#27AE60', '#8E44AD', '#16A085', '#C0392B',
 ]
 
-function toOpts(arr = []) {
-  return arr.map((v) => ({ value: String(v), label: String(v) }))
-}
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
@@ -93,10 +91,10 @@ export default function Bolsistas() {
 
         <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <FiltroSelect label="Modalidade"    value={filtroModalidade} onChange={setFiltroModalidade} options={toOpts(opcoes.modalidades)} />
-            <FiltroSelect label="Órgão"         value={filtroOrgao}      onChange={setFiltroOrgao}      options={toOpts(opcoes.orgaos)} />
-            <FiltroSelect label="Centro/Campus" value={filtroCentro}     onChange={setFiltroCentro}     options={toOpts(opcoes.campi)} />
-            <FiltroSelect label="Nome"          value={filtroNome}       onChange={setFiltroNome}       options={toOpts(opcoes.nomes)} />
+            <FiltroSelect label="Modalidade"    value={filtroModalidade} onChange={setFiltroModalidade} options={opcoesFiltro(opcoes.modalidades)} />
+            <FiltroSelect label="Órgão"         value={filtroOrgao}      onChange={setFiltroOrgao}      options={opcoesFiltro(opcoes.orgaos)} />
+            <FiltroSelect label="Centro/Campus" value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.campi)} />
+            <FiltroSelect label="Nome"          value={filtroNome}       onChange={setFiltroNome}       options={opcoesFiltro(opcoes.nomes, { tipo: 'pessoa' })} />
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>

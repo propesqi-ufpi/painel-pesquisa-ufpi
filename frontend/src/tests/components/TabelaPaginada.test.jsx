@@ -121,4 +121,19 @@ describe('TabelaPaginada', () => {
     render(<TabelaPaginada colunas={colunasComRender} dados={[{ nome: 'Teste' }]} />)
     expect(screen.getByText('[Teste]')).toBeInTheDocument()
   })
+
+  it('mostra travessão para vazio e erro de planilha, com o bruto no tooltip', () => {
+    render(<TabelaPaginada colunas={colunas} dados={[{ nome: '#N/D', valor: null }]} />)
+    const vazios = screen.getAllByLabelText('Não informado')
+    expect(vazios).toHaveLength(2)
+    expect(vazios[0].closest('td')).toHaveAttribute('title', '#N/D')
+    expect(vazios[1].closest('td')).not.toHaveAttribute('title')
+  })
+
+  it('coluna de pessoas exibe o nome sem títulos e guarda o original no tooltip', () => {
+    const cols = [{ key: 'coordenador', label: 'COORDENADOR', tipo: 'pessoas' }]
+    render(<TabelaPaginada colunas={cols} dados={[{ coordenador: 'PROF. DR. ANA DE SOUSA' }]} />)
+    const celula = screen.getByText('Ana de Sousa')
+    expect(celula).toHaveAttribute('title', 'PROF. DR. ANA DE SOUSA')
+  })
 })

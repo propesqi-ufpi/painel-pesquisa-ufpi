@@ -27,7 +27,7 @@ const COLUNAS_VITRINE = [
   { key: 'pedido',     label: 'PEDIDO' },
   { key: 'ano',        label: 'ANO' },
   { key: 'titulo',     label: 'TÍTULO' },
-  { key: 'inventores', label: 'INVENTORES' },
+  { key: 'inventores', label: 'INVENTORES', tipo: 'pessoas' },
   { key: 'descricao',  label: 'DESCRIÇÃO' },
 ]
 

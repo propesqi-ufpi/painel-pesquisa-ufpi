@@ -55,4 +55,21 @@ describe('BotaoExportarCSV', () => {
     render(<BotaoExportarCSV dados={[]} nomeArquivo="vazio" colunas={colunas} />)
     expect(() => fireEvent.click(screen.getByRole('button'))).not.toThrow()
   })
+
+  it('exporta os valores como aparecem na tela', async () => {
+    const cols = [
+      { key: 'coordenador', label: 'COORDENADOR', tipo: 'pessoas' },
+      { key: 'centro', label: 'CENTRO' },
+    ]
+    const linhas = [{ coordenador: 'Prof. Dr. Ana Lima', centro: '#N/D' }]
+    render(<BotaoExportarCSV dados={linhas} nomeArquivo="teste" colunas={cols} />)
+    fireEvent.click(screen.getByRole('button'))
+    const blob = URL.createObjectURL.mock.calls.at(-1)[0]
+    const texto = await new Promise((ok) => {
+      const leitor = new FileReader()
+      leitor.onload = () => ok(leitor.result)
+      leitor.readAsText(blob)
+    })
+    expect(texto.replace('\ufeff', '')).toBe('COORDENADOR,CENTRO\nAna Lima,')
+  })
 })
