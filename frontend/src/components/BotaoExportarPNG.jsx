@@ -18,6 +18,14 @@ export default function BotaoExportarPNG({ refGrafico, nomeArquivo = 'grafico' }
       useCORS: true,
       // Fundo do tema atual, para o PNG sair como aparece na tela.
       backgroundColor: lerCoresGrafico().superficie,
+      // Gráficos com rolagem (BarrasHorizontais) saem com a lista inteira.
+      onclone: (doc) => {
+        doc.querySelectorAll('[data-rolagem-grafico]').forEach((el) => {
+          el.style.maxHeight = 'none'
+          el.style.overflow = 'visible'
+          el.style.height = 'auto'
+        })
+      },
     })
     const url = canvas.toDataURL('image/png')
     const a = document.createElement('a')

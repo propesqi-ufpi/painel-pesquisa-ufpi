@@ -8,6 +8,11 @@ vi.mock('recharts', () => ({
   Cell:      () => null,
   Legend:    () => null,
   Tooltip:   () => null,
+  BarChart: ({ children }) => <div data-testid="bar-chart">{children}</div>,
+  Bar: () => null,
+  LabelList: () => null,
+  XAxis: () => null,
+  YAxis: () => null,
 }))
 
 vi.mock('../../api/index.js', () => ({
@@ -87,10 +92,10 @@ describe('Bolsistas', () => {
     )
   })
 
-  it('exibe gráfico de pizza com título correto', async () => {
+  it('exibe gráfico de barras horizontais com título correto', async () => {
     renderPage()
     await waitFor(() => {
-      expect(screen.getByTestId('pie-chart')).toBeInTheDocument()
+      expect(screen.getByTestId('bar-chart')).toBeInTheDocument()
       expect(screen.getByText(/Bolsistas por Campus\/Centro/)).toBeInTheDocument()
     })
   })

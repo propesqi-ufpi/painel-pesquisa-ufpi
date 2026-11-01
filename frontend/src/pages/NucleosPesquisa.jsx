@@ -1,24 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from 'recharts'
-import {
-  getKPIsNucleos, getFiltrosNucleos,
-  getNucleosPorCentro, getNucleos,
-} from '../api/index.js'
+import { getKPIsNucleos, getFiltrosNucleos, getNucleosPorCentro, getNucleos } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconNucleos, iconNucleosAtivos, iconNucleosInativos } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
-import { useCoresGrafico } from '../utils/coresGrafico'
 import { alternarValor, semChave } from '../utils/filtroCruzado'
-import { barraClicavel } from '../components/graficos/barraClicavel'
+import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
@@ -28,25 +20,9 @@ const COLUNAS = [
   { key: 'ano_resolucao', label: 'ANO DA RESOLUÇÃO' },
 ]
 
-function TickRotacionado({ x, y, payload, cor }) {
-  const texto =
-    typeof payload.value === 'string' && payload.value.length > 10
-      ? payload.value.slice(0, 10) + '…'
-      : payload.value
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill={cor} fontSize={9} transform="rotate(-35)">
-        {texto}
-      </text>
-    </g>
-  )
-}
-
-
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function NucleosPesquisa() {
-  const cores = useCoresGrafico()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCentro, setDadosPorCentro] = useState([])
@@ -142,15 +118,7 @@ export default function NucleosPesquisa() {
             {loadingGrafico ? (
               <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={dadosPorCentro} margin={{ top: 8, right: 8, left: 0, bottom: 44 }}>
-                  <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" vertical={false} />
-                  <XAxis stroke={cores.grade} dataKey="centro" tick={<TickRotacionado cor={cores.eixo} />} interval={0} />
-                  <YAxis stroke={cores.grade} tick={{ fontSize: 10, fill: cores.eixo }} />
-                  <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico />} />
-                  <Bar dataKey="total" fill={cores.serie1} radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })} />
-                </BarChart>
-              </ResponsiveContainer>
+              <BarrasHorizontais dados={dadosPorCentro} categoria="centro" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Núcleos" alturaMax={260} />
             )}
           </div>
           <div className="flex justify-end mt-1">

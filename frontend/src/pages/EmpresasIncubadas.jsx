@@ -30,8 +30,6 @@ const COLUNAS = [
   { key: 'incubadora',     label: 'INCUBADORA' },
 ]
 
-
-
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function EmpresasIncubadas() {

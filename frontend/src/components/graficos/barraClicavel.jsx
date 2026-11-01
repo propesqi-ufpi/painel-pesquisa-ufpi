@@ -17,7 +17,7 @@ export function aoTeclarAtivar(evento, acao) {
  * `podeFiltrar(valor)` desliga o clique em categorias que não são valores reais
  * (ex.: "Em branco"). O Recharts chama o shape como função, então não há remontagem.
  */
-export function barraClicavel({ categoria, selecionados = [], onAlternar, podeFiltrar = () => true }) {
+export function barraClicavel({ categoria, selecionados = [], onAlternar, podeFiltrar = () => true, formatarValor = (v) => v }) {
   return function desenharBarra(props) {
     const valor = props.payload?.[categoria]
     const forma = <Rectangle {...props} fillOpacity={opacidade(selecionados, valor)} />
@@ -31,7 +31,7 @@ export function barraClicavel({ categoria, selecionados = [], onAlternar, podeFi
         role="button"
         tabIndex={0}
         aria-pressed={ativo}
-        aria-label={`${valor}: ${props.value}. ${ativo ? 'Remover do filtro' : 'Filtrar por este valor'}`}
+        aria-label={`${valor}: ${formatarValor(props.value)}. ${ativo ? 'Remover do filtro' : 'Filtrar por este valor'}`}
         onClick={alternar}
         onKeyDown={(e) => aoTeclarAtivar(e, alternar)}
         className="cursor-pointer outline-none [&:focus-visible>path]:stroke-ouro [&:focus-visible>path]:[stroke-width:2]"

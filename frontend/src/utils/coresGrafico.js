@@ -16,6 +16,7 @@ const PADRAO = {
   grade: '#e3e8ef',
   eixo: '#5f6b7a',
   superficie: '#ffffff',
+  texto: '#16202e',
 }
 
 export function lerCoresGrafico(raiz = typeof document !== 'undefined' ? document.documentElement : null) {
@@ -32,6 +33,7 @@ export function lerCoresGrafico(raiz = typeof document !== 'undefined' ? documen
     grade: ler('--grade', PADRAO.grade),
     eixo: ler('--eixo', PADRAO.eixo),
     superficie: rgb('--superficie', PADRAO.superficie),
+    texto: rgb('--texto', PADRAO.texto),
   }
 }
 
