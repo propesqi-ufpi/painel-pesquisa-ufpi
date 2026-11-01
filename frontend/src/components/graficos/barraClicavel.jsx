@@ -34,7 +34,7 @@ export function barraClicavel({ categoria, selecionados = [], onAlternar, podeFi
         aria-label={`${valor}: ${props.value}. ${ativo ? 'Remover do filtro' : 'Filtrar por este valor'}`}
         onClick={alternar}
         onKeyDown={(e) => aoTeclarAtivar(e, alternar)}
-        className="cursor-pointer outline-none [&:focus-visible>path]:stroke-amber-400 [&:focus-visible>path]:[stroke-width:2]"
+        className="cursor-pointer outline-none [&:focus-visible>path]:stroke-ouro [&:focus-visible>path]:[stroke-width:2]"
       >
         {forma}
       </g>

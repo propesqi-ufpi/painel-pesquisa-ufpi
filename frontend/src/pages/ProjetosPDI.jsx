@@ -17,6 +17,7 @@ import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconConcluidos, iconEmAndamento } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { useCoresGrafico } from '../utils/coresGrafico'
 import { alternarValor, semChave } from '../utils/filtroCruzado'
 import { barraClicavel } from '../components/graficos/barraClicavel'
 import DicaFiltro from '../components/graficos/DicaFiltro'
@@ -30,14 +31,14 @@ const COLUNAS = [
   { key: 'area',        label: 'ÁREA DO CONHECIMENTO' },
 ]
 
-function TickRotacionado({ x, y, payload }) {
+function TickRotacionado({ x, y, payload, cor }) {
   const texto =
     typeof payload.value === 'string' && payload.value.length > 12
       ? payload.value.slice(0, 12) + '…'
       : payload.value
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill="#6B7280" fontSize={9} transform="rotate(-35)">
+      <text x={0} y={0} dy={10} textAnchor="end" fill={cor} fontSize={9} transform="rotate(-35)">
         {texto}
       </text>
     </g>
@@ -53,6 +54,7 @@ function formatarEixoY(v) {
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function ProjetosPDI() {
+  const cores = useCoresGrafico()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorArea,   setDadosPorArea]   = useState([])
@@ -138,7 +140,7 @@ export default function ProjetosPDI() {
         </div>
 
         {/* Filtros */}
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
           <div className="grid grid-cols-3 xl:grid-cols-4 gap-2">
             <FiltroSelect label="Ano Início"   value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={opcoesFiltro(opcoes.anos_inicio)} />
             <FiltroSelect label="Ano Término"  value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={opcoesFiltro(opcoes.anos_termino)} />
@@ -157,22 +159,22 @@ export default function ProjetosPDI() {
         {/* Coluna de gráficos */}
         <div className="flex flex-col gap-3 min-h-0">
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+          <div className="bg-superficie rounded-xl p-3 shadow-sm">
             <div ref={refGraficoArea}>
-              <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+              <h3 className="text-xs font-semibold text-center text-texto mb-2">
                 Nº de Projetos x Área do Conhecimento
               </h3>
               <DicaFiltro />
               {loadingGraficos ? (
-                <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+                <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
               ) : (
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={dadosPorArea} margin={{ top: 8, right: 8, left: 0, bottom: 48 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="area" tick={<TickRotacionado />} interval={0} />
-                    <YAxis tick={{ fontSize: 10 }} />
-                    <Tooltip content={<TooltipGrafico />} />
-                    <Bar dataKey="total" fill="#1E3A5F" radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'area', selecionados: filtroArea, onAlternar: alternarArea })} />
+                    <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" vertical={false} />
+                    <XAxis stroke={cores.grade} dataKey="area" tick={<TickRotacionado cor={cores.eixo} />} interval={0} />
+                    <YAxis stroke={cores.grade} tick={{ fontSize: 10, fill: cores.eixo }} />
+                    <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico />} />
+                    <Bar dataKey="total" fill={cores.serie1} radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'area', selecionados: filtroArea, onAlternar: alternarArea })} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -182,22 +184,22 @@ export default function ProjetosPDI() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+          <div className="bg-superficie rounded-xl p-3 shadow-sm">
             <div ref={refGraficoCentro}>
-              <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+              <h3 className="text-xs font-semibold text-center text-texto mb-2">
                 Nº de Projetos x Centros/Campus
               </h3>
               <DicaFiltro />
               {loadingGraficos ? (
-                <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+                <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
               ) : (
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={dadosPorCentro} margin={{ top: 8, right: 8, left: 0, bottom: 48 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="centro" tick={<TickRotacionado />} interval={0} />
-                    <YAxis tickFormatter={formatarEixoY} tick={{ fontSize: 10 }} />
-                    <Tooltip content={<TooltipGrafico />} />
-                    <Bar dataKey="total" fill="#1E3A5F" radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })} />
+                    <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" vertical={false} />
+                    <XAxis stroke={cores.grade} dataKey="centro" tick={<TickRotacionado cor={cores.eixo} />} interval={0} />
+                    <YAxis stroke={cores.grade} tickFormatter={formatarEixoY} tick={{ fontSize: 10, fill: cores.eixo }} />
+                    <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico />} />
+                    <Bar dataKey="total" fill={cores.serie1} radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -209,9 +211,9 @@ export default function ProjetosPDI() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col min-h-0">
+        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col min-h-0">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
-            <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+            <h3 className="text-xs font-semibold text-texto">
               Informações dos Projetos de Pesquisas
             </h3>
             <BotaoExportarCSV dados={projetos} nomeArquivo="projetos_pdi" colunas={COLUNAS} />

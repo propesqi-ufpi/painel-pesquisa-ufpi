@@ -19,7 +19,7 @@ describe('BotaoExportarPNG', () => {
     render(<BotaoExportarPNG refGrafico={{ current: div }} nomeArquivo="grafico" />)
     fireEvent.click(screen.getByRole('button'))
     await waitFor(() =>
-      expect(html2canvas).toHaveBeenCalledWith(div, { useCORS: true })
+      expect(html2canvas).toHaveBeenCalledWith(div, expect.objectContaining({ useCORS: true, backgroundColor: expect.any(String) }))
     )
   })
 

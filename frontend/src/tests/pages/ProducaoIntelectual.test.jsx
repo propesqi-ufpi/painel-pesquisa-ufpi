@@ -102,10 +102,10 @@ describe('ProducaoIntelectual', () => {
     )
   })
 
-  it('gráfico de pizza (softwares) está presente', async () => {
+  it('softwares por ano também é gráfico de barras (patentes e softwares)', async () => {
     renderPage()
     await waitFor(() =>
-      expect(screen.getAllByTestId('pie-chart').length).toBeGreaterThan(0)
+      expect(screen.getAllByTestId('bar-chart')).toHaveLength(2)
     )
   })
 

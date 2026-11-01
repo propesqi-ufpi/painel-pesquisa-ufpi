@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
 } from 'recharts'
 import {
   getKPIsProducao, getTiposProducao, getAnosProducao,
@@ -13,19 +12,15 @@ import FiltroSelect from '../components/FiltroSelect'
 import FiltroTexto from '../components/FiltroTexto'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
-import { alternarValor, opacidade } from '../utils/filtroCruzado'
-import { barraClicavel, valorDaFatia } from '../components/graficos/barraClicavel'
-import LegendaClicavel from '../components/graficos/LegendaClicavel'
+import { alternarValor } from '../utils/filtroCruzado'
+import { barraClicavel } from '../components/graficos/barraClicavel'
 import DicaFiltro from '../components/graficos/DicaFiltro'
+import { useCoresGrafico } from '../utils/coresGrafico'
 import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconPatentes, iconSoftwares, iconMarcas } from '../assets/icons.js'
 
-const CORES = [
-  '#1E3A5F', '#2E5F8A', '#4A90D9', '#7AB3E0', '#A8D1F0',
-  '#0D2B4A', '#1A4F7A', '#3D7DB5', '#6BA3CE', '#9BC4E3',
-]
 
 const COLUNAS_VITRINE = [
   { key: 'pedido',     label: 'PEDIDO' },
@@ -38,6 +33,7 @@ const COLUNAS_VITRINE = [
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function ProducaoIntelectual() {
+  const cores = useCoresGrafico()
   const [kpis, setKpis] = useState({})
   const [tiposDisponiveis, setTiposDisponiveis] = useState([])
   const [anosDisponiveis,  setAnosDisponiveis]  = useState([])
@@ -96,13 +92,12 @@ export default function ProducaoIntelectual() {
     setFiltroTipo([])
   }
 
-  const totalSoftwares = dadosSoftwares.reduce((s, d) => s + (d.depositadas ?? 0), 0)
 
   return (
     <div className="h-full flex gap-3">
 
       {/* ── Filtros (sidebar esquerda) ── */}
-      <div className="w-40 flex-shrink-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col gap-3">
+      <div className="w-40 flex-shrink-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col gap-3">
         <FiltroTexto label="Inventores" value={filtroInventor} onChange={setFiltroInventor} placeholder="Buscar inventor…" />
         <FiltroSelect label="Ano"  value={filtroAno}  onChange={setFiltroAno}  options={anosDisponiveis} />
         <FiltroSelect label="Tipo" value={filtroTipo} onChange={setFiltroTipo} options={tiposDisponiveis} />
@@ -129,22 +124,22 @@ export default function ProducaoIntelectual() {
         {/* Gráficos */}
         <div className="flex-shrink-0 grid grid-cols-2 gap-3">
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+          <div className="bg-superficie rounded-xl p-3 shadow-sm">
             <div ref={refGraficoPatentes}>
-              <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+              <h3 className="text-xs font-semibold text-center text-texto mb-2">
                 Patentes depositadas x Ano
               </h3>
               <DicaFiltro />
               {loadingGraficos ? (
-                <div className="h-36 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+                <div className="h-36 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
               ) : (
                 <ResponsiveContainer width="100%" height={170}>
                   <BarChart data={dadosPatentes.slice().reverse()} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tick={{ fontSize: 10 }} />
-                    <YAxis type="category" dataKey="ano" width={44} tick={{ fontSize: 10 }} />
-                    <Tooltip content={<TooltipGrafico />} />
-                    <Bar dataKey="depositadas" fill="#1E3A5F" radius={[0, 3, 3, 0]} shape={barraClicavel({ categoria: 'ano', selecionados: filtroAno, onAlternar: alternarAno })} />
+                    <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" />
+                    <XAxis stroke={cores.grade} type="number" tick={{ fontSize: 10, fill: cores.eixo }} />
+                    <YAxis stroke={cores.grade} type="category" dataKey="ano" width={44} tick={{ fontSize: 10, fill: cores.eixo }} />
+                    <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico />} />
+                    <Bar dataKey="depositadas" fill={cores.serie1} radius={[0, 3, 3, 0]} shape={barraClicavel({ categoria: 'ano', selecionados: filtroAno, onAlternar: alternarAno })} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -154,25 +149,23 @@ export default function ProducaoIntelectual() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+          <div className="bg-superficie rounded-xl p-3 shadow-sm">
             <div ref={refGraficoSoftwares}>
-              <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+              <h3 className="text-xs font-semibold text-center text-texto mb-2">
                 Softwares Registrados x Ano
               </h3>
               <DicaFiltro />
               {loadingGraficos ? (
-                <div className="h-36 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+                <div className="h-36 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
               ) : (
-                <ResponsiveContainer width="100%" height={195}>
-                  <PieChart>
-                    <Pie data={dadosSoftwares} dataKey="depositadas" nameKey="ano" cx="50%" cy="46%" outerRadius={58} className="cursor-pointer" onClick={(d) => alternarAno(valorDaFatia(d, 'ano'))}>
-                      {dadosSoftwares.map((item, i) => (
-                        <Cell key={i} fill={CORES[i % CORES.length]} fillOpacity={opacidade(filtroAno, item.ano)} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<TooltipGrafico total={totalSoftwares} />} />
-                    <Legend content={<LegendaClicavel selecionados={filtroAno} onAlternar={alternarAno} />} />
-                  </PieChart>
+                <ResponsiveContainer width="100%" height={170}>
+                  <BarChart data={dadosSoftwares.slice().reverse()} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
+                    <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" />
+                    <XAxis stroke={cores.grade} type="number" tick={{ fontSize: 10, fill: cores.eixo }} />
+                    <YAxis stroke={cores.grade} type="category" dataKey="ano" width={44} tick={{ fontSize: 10, fill: cores.eixo }} />
+                    <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico />} />
+                    <Bar dataKey="depositadas" name="Registrados" fill={cores.serie1} radius={[0, 3, 3, 0]} shape={barraClicavel({ categoria: 'ano', selecionados: filtroAno, onAlternar: alternarAno })} />
+                  </BarChart>
                 </ResponsiveContainer>
               )}
             </div>
@@ -183,9 +176,9 @@ export default function ProducaoIntelectual() {
         </div>
 
         {/* Tabela Vitrine */}
-        <div className="flex-1 min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+        <div className="flex-1 min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
-            <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+            <h3 className="text-xs font-semibold text-texto">
               Informações das Produções Intelectuais
             </h3>
             <BotaoExportarCSV dados={vitrine} nomeArquivo="producao_intelectual" colunas={COLUNAS_VITRINE} />

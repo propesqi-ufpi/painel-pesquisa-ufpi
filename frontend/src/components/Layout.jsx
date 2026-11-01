@@ -7,7 +7,7 @@ export default function Layout() {
   const [sidebarAberta, setSidebarAberta] = useState(false)
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen bg-fundo">
       <Sidebar
         isOpen={sidebarAberta}
         onClose={() => setSidebarAberta(false)}

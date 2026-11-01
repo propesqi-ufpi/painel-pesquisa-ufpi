@@ -16,12 +16,12 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconFomento, iconProjetos } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { useCoresGrafico, useCorPorCategoria } from '../utils/coresGrafico'
 import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
 import { barraClicavel, valorDaFatia } from '../components/graficos/barraClicavel'
 import LegendaClicavel from '../components/graficos/LegendaClicavel'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
-const CORES_DONUT = ['#1E3A5F', '#4A90D9']
 
 
 function formatarMi(v) {
@@ -33,9 +33,9 @@ function formatarEixoMi(v) {
   return `R$ ${Number(v).toFixed(1).replace('.', ',')} Mi`
 }
 
-function BarLabelMi({ x, y, width, value }) {
+function BarLabelMi({ x, y, width, value, cor }) {
   return (
-    <text x={x + width / 2} y={y - 3} textAnchor="middle" fontSize={9} fill="#374151">
+    <text x={x + width / 2} y={y - 3} textAnchor="middle" fontSize={9} fill={cor}>
       {`R$ ${Number(value).toFixed(1).replace('.', ',')} Mi`}
     </text>
   )
@@ -44,6 +44,8 @@ function BarLabelMi({ x, y, width, value }) {
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function ProjetosFinep() {
+  const cores = useCoresGrafico()
+  const corDe = useCorPorCategoria(cores)
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosRelacao,   setDadosRelacao]   = useState([])
@@ -119,7 +121,7 @@ export default function ProjetosFinep() {
           )}
         </div>
 
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
           <div className="grid grid-cols-3 xl:grid-cols-4 gap-2">
             <FiltroSelect label="Ano de Início"  value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={opcoesFiltro(opcoes.anos_inicio)} />
             <FiltroSelect label="Ano de Término" value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={opcoesFiltro(opcoes.anos_termino)} />
@@ -136,18 +138,20 @@ export default function ProjetosFinep() {
       <div className="flex-1 min-h-0 grid grid-cols-2 gap-3">
 
         {/* Donut */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
           <div ref={refGraficoDonut} className="flex-1">
-            <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+            <h3 className="text-xs font-semibold text-center text-texto mb-2">
               Relação: Internos x Externos
             </h3>
             <DicaFiltro />
             {loadingGraficos ? (
-              <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+              <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
                   <Pie
+                    stroke={cores.superficie}
+                    strokeWidth={2}
                     data={dadosRelacao}
                     dataKey="total"
                     nameKey="tipo"
@@ -163,10 +167,10 @@ export default function ProjetosFinep() {
                     labelLine
                   >
                     {dadosRelacao.map((item, i) => (
-                      <Cell key={i} fill={CORES_DONUT[i % CORES_DONUT.length]} fillOpacity={opacidade(filtroModalidade, item.tipo)} />
+                      <Cell key={i} fill={corDe(item.tipo)} fillOpacity={opacidade(filtroModalidade, item.tipo)} />
                     ))}
                   </Pie>
-                  <Tooltip content={<TooltipGrafico total={totalRelacao} />} />
+                  <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico total={totalRelacao} />} />
                   <Legend content={<LegendaClicavel selecionados={filtroModalidade} onAlternar={alternarModalidade} />} />
                 </PieChart>
               </ResponsiveContainer>
@@ -178,23 +182,23 @@ export default function ProjetosFinep() {
         </div>
 
         {/* Barras */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
           <div ref={refGraficoCentro} className="flex-1">
-            <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+            <h3 className="text-xs font-semibold text-center text-texto mb-2">
               Valor Total de Fomento por Centro/Campi
             </h3>
             <DicaFiltro />
             {loadingGraficos ? (
-              <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+              <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={dadosPorCentro} margin={{ top: 20, right: 8, left: 8, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="centro" tick={{ fontSize: 10 }} />
-                  <YAxis tickFormatter={formatarEixoMi} tick={{ fontSize: 9 }} width={62} />
-                  <Tooltip content={<TooltipGrafico formatarValor={(v) => `R$ ${formatarMi(v)}`} />} />
-                  <Bar dataKey="valor_mi" fill="#2E5F8A" radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })}>
-                    <LabelList content={<BarLabelMi />} />
+                  <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" vertical={false} />
+                  <XAxis stroke={cores.grade} dataKey="centro" tick={{ fontSize: 10, fill: cores.eixo }} />
+                  <YAxis stroke={cores.grade} tickFormatter={formatarEixoMi} tick={{ fontSize: 9, fill: cores.eixo }} width={62} />
+                  <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico formatarValor={(v) => `R$ ${formatarMi(v)}`} />} />
+                  <Bar dataKey="valor_mi" fill={cores.serie1} radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })}>
+                    <LabelList content={<BarLabelMi cor={cores.eixo} />} />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>

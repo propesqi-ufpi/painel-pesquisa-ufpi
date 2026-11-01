@@ -15,6 +15,7 @@ import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconPosGraduacao } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
+import { useCoresGrafico } from '../utils/coresGrafico'
 import { alternarValor, semChave } from '../utils/filtroCruzado'
 import { barraClicavel } from '../components/graficos/barraClicavel'
 import DicaFiltro from '../components/graficos/DicaFiltro'
@@ -30,14 +31,14 @@ const COLUNAS = [
   { key: 'conceito_capes', label: 'CONCEITO CAPES' },
 ]
 
-function TickRotacionado({ x, y, payload }) {
+function TickRotacionado({ x, y, payload, cor }) {
   const texto =
     typeof payload.value === 'string' && payload.value.length > 10
       ? payload.value.slice(0, 10) + '…'
       : payload.value
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill="#6B7280" fontSize={9} transform="rotate(-35)">
+      <text x={0} y={0} dy={10} textAnchor="end" fill={cor} fontSize={9} transform="rotate(-35)">
         {texto}
       </text>
     </g>
@@ -50,7 +51,7 @@ function fa(arr) { return arr.length > 0 ? arr : undefined }
 function CardPosGrad({ valor, loading }) {
   if (loading) return <SkeletonCard />
   return (
-    <div className="h-full bg-azul-escuro text-white rounded-xl px-4 py-4 flex flex-col items-center justify-center text-center">
+    <div className="h-full bg-faixa text-white rounded-xl px-4 py-4 flex flex-col items-center justify-center text-center">
       <p className="text-xs font-bold uppercase tracking-wide opacity-80">Pós-Graduação</p>
       <img src={iconPosGraduacao} alt="" className="w-7 h-7 object-contain mt-2 opacity-90" />
       <p className="text-3xl font-bold mt-2">{valor ?? '—'}</p>
@@ -59,6 +60,7 @@ function CardPosGrad({ valor, loading }) {
 }
 
 export default function PosGraduacao() {
+  const cores = useCoresGrafico()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCentro, setDadosPorCentro] = useState([])
@@ -127,26 +129,26 @@ export default function PosGraduacao() {
         </div>
 
         {/* Gráfico */}
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
           <div ref={refGrafico}>
-            <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-1">
+            <h3 className="text-xs font-semibold text-center text-texto mb-1">
               Nº de Pós-graduação x Centro
             </h3>
             <DicaFiltro />
             {loadingGrafico ? (
-              <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+              <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
               <ResponsiveContainer width="100%" height={168}>
                 <BarChart data={dadosPorCentro} margin={{ top: 8, right: 8, left: 0, bottom: 40 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="centro" tick={<TickRotacionado />} interval={0}
-                    label={{ value: 'CENTRO', position: 'insideBottom', offset: -30, fontSize: 9, fill: '#6B7280' }}
+                  <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" vertical={false} />
+                  <XAxis stroke={cores.grade} dataKey="centro" tick={<TickRotacionado cor={cores.eixo} />} interval={0}
+                    label={{ value: 'CENTRO', position: 'insideBottom', offset: -30, fontSize: 9, fill: cores.eixo }}
                   />
-                  <YAxis tick={{ fontSize: 10 }}
-                    label={{ value: 'Programas', angle: -90, position: 'insideLeft', offset: 10, fontSize: 9, fill: '#6B7280' }}
+                  <YAxis stroke={cores.grade} tick={{ fontSize: 10, fill: cores.eixo }}
+                    label={{ value: 'Programas', angle: -90, position: 'insideLeft', offset: 10, fontSize: 9, fill: cores.eixo }}
                   />
-                  <Tooltip content={<TooltipGrafico />} />
-                  <Bar dataKey="total" fill="#2E5F8A" radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })} />
+                  <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico />} />
+                  <Bar dataKey="total" fill={cores.serie1} radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -158,7 +160,7 @@ export default function PosGraduacao() {
 
         {/* Filtros */}
         <div className="w-52 flex-shrink-0">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm h-full">
+          <div className="bg-superficie rounded-xl p-3 shadow-sm h-full">
             <div className="grid grid-cols-2 gap-2">
               <FiltroSelect label="Programa"       value={filtroPrograma} onChange={setFiltroPrograma} options={opcoesFiltro(opcoes.programas)} />
               <FiltroSelect label="Conceito CAPES" value={filtroConceito} onChange={setFiltroConceito} options={opcoesFiltro(opcoes.conceitos_capes)} />
@@ -172,9 +174,9 @@ export default function PosGraduacao() {
       </div>
 
       {/* ── Tabela ── */}
-      <div className="flex-1 min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+      <div className="flex-1 min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
-          <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+          <h3 className="text-xs font-semibold text-texto">
             Informações dos Programas de Pós-Graduação
           </h3>
           <BotaoExportarCSV dados={programas} nomeArquivo="pos_graduacao" colunas={COLUNAS} />
