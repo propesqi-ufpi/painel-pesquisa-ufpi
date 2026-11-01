@@ -1,35 +1,69 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { LogOut } from 'lucide-react'
-import SeletorTema from './SeletorTema'
 import {
-  iconProjetos, iconFomento, iconBolsistas, iconNucleos,
-  iconGrupos, iconIncubadas, iconPosGraduacao, iconLaboratorios,
-  iconPatentes,
-} from '../assets/icons.js'
+  Atom, FlaskConical, GraduationCap, IdCard, Landmark, LayoutDashboard,
+  Lightbulb, LogOut, Microscope, PanelLeftClose, PanelLeftOpen, Rocket, Users,
+} from 'lucide-react'
+import SeletorTema from './SeletorTema'
+import Marca from './Marca'
+import DicaLateral from './DicaLateral'
 
-const links = [
-  { to: '/',                     label: 'Geral',                icone: null,               end: true },
-  { to: '/projetos-pdi',         label: 'Projetos PD&I',        icone: iconProjetos },
-  { to: '/projetos-finep',       label: 'Projetos FINEP',       icone: iconFomento },
-  { to: '/producao-intelectual', label: 'Produção Intelectual', icone: iconPatentes },
-  { to: '/bolsistas',            label: 'Bolsistas',            icone: iconBolsistas },
-  { to: '/nucleos',              label: 'Núcleos de Pesquisa',  icone: iconNucleos },
-  { to: '/grupos',               label: 'Grupos de Pesquisa',   icone: iconGrupos },
-  { to: '/incubadas',            label: 'Empresas Incubadas',   icone: iconIncubadas },
-  { to: '/pos-graduacao',        label: 'Pós-Graduação',        icone: iconPosGraduacao },
-  { to: '/laboratorios',         label: 'Laboratórios',         icone: iconLaboratorios },
+const grupos = [
+  {
+    titulo: 'Visão geral',
+    links: [
+      { to: '/', label: 'Geral', Icone: LayoutDashboard, end: true },
+    ],
+  },
+  {
+    titulo: 'Pesquisa',
+    links: [
+      { to: '/projetos-pdi',  label: 'Projetos PD&I',       Icone: FlaskConical },
+      { to: '/grupos',        label: 'Grupos de Pesquisa',  Icone: Users },
+      { to: '/nucleos',       label: 'Núcleos de Pesquisa', Icone: Atom },
+      { to: '/laboratorios',  label: 'Laboratórios',        Icone: Microscope },
+    ],
+  },
+  {
+    titulo: 'Inovação',
+    links: [
+      { to: '/projetos-finep',       label: 'Projetos FINEP',       Icone: Landmark },
+      { to: '/producao-intelectual', label: 'Produção Intelectual', Icone: Lightbulb },
+      { to: '/incubadas',            label: 'Empresas Incubadas',   Icone: Rocket },
+    ],
+  },
+  {
+    titulo: 'Formação',
+    links: [
+      { to: '/bolsistas',     label: 'Bolsistas',     Icone: IdCard },
+      { to: '/pos-graduacao', label: 'Pós-Graduação', Icone: GraduationCap },
+    ],
+  },
 ]
 
-const linkClass = ({ isActive }) =>
+// Classes que só valem a partir do desktop quando recolhida; no mobile a gaveta
+// aparece sempre aberta.
+const R = {
+  largura:  'md:w-[4.5rem]',
+  rotulo:   'md:sr-only',
+  item:     'md:justify-center md:px-0',
+  titulo:   'md:sr-only',
+  divisor:  'md:block',
+  rodape:   'md:px-2 md:items-center',
+}
+const se = (cond, classe) => (cond ? classe : '')
+
+const linkClass = (recolhida) => ({ isActive }) =>
   [
-    'flex items-center gap-3 px-4 py-3 text-sm transition-colors border-l-[3px]',
+    'group flex items-center gap-3 mx-2 px-3 py-2.5 rounded-md text-sm transition-colors',
+    'border-l-[3px] focus:outline-none focus-visible:ring-2 focus-visible:ring-ouro',
+    se(recolhida, R.item),
     isActive
       ? 'bg-white/10 text-white border-ouro font-medium'
-      : 'text-white/70 border-transparent hover:bg-white/10',
+      : 'text-white/75 border-transparent hover:bg-white/10 hover:text-white',
   ].join(' ')
 
-export default function Sidebar({ isOpen, onClose }) {
+export default function Sidebar({ isOpen, onClose, recolhida = false, onAlternarRecolhida }) {
   const { sair } = useAuth()
   const navigate = useNavigate()
 
@@ -37,6 +71,9 @@ export default function Sidebar({ isOpen, onClose }) {
     sair()
     navigate('/login')
   }
+
+  // Dica lateral só com a sidebar recolhida (DicaLateral ignora o mobile).
+  const dicas = recolhida
 
   return (
     <>
@@ -49,49 +86,93 @@ export default function Sidebar({ isOpen, onClose }) {
       )}
 
       <aside
+        aria-label="Menu principal"
         className={[
           'fixed inset-y-0 left-0 z-50 w-64 bg-faixa flex flex-col',
-          'transition-transform duration-300 ease-in-out',
+          'transition-[transform,width] duration-300 ease-in-out motion-reduce:transition-none',
           isOpen ? 'translate-x-0' : '-translate-x-full',
           'md:static md:translate-x-0 md:z-auto',
+          se(recolhida, R.largura),
         ].join(' ')}
       >
-        {/* Topo */}
-        <div className="px-5 py-5 border-b border-white/10">
-          <span className="text-white text-lg font-bold tracking-tight">
-            Painel UFPI
-          </span>
+        {/* Marca, com filete ouro como na faixa institucional */}
+        <div className={`px-4 py-4 border-b-[3px] border-ouro ${se(recolhida, 'md:px-0 md:flex md:justify-center')}`}>
+          <Marca compacta={recolhida} />
         </div>
 
         {/* Navegação */}
-        <nav className="flex-1 overflow-y-auto py-2">
-          {links.map(({ to, label, icone, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={linkClass}
-              onClick={onClose}
-            >
-              {icone
-                ? <img src={icone} alt="" className="w-5 h-5 object-contain shrink-0" />
-                : <span className="w-5 h-5 shrink-0" />
-              }
-              <span>{label}</span>
-            </NavLink>
+        <nav aria-label="Seções do painel" className="flex-1 overflow-y-auto overflow-x-hidden py-3">
+          {grupos.map(({ titulo, links }, gi) => (
+            <div key={titulo} role="group" aria-labelledby={`grupo-nav-${gi}`} className={gi ? 'mt-3' : ''}>
+              <span
+                id={`grupo-nav-${gi}`}
+                className={`block px-5 pb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-white/55 ${se(recolhida, R.titulo)}`}
+              >
+                {titulo}
+              </span>
+              {recolhida && gi > 0 && (
+                <hr aria-hidden="true" className={`hidden mx-4 mb-2 border-white/15 ${R.divisor}`} />
+              )}
+              <ul className="flex flex-col gap-0.5">
+                {links.map(({ to, label, Icone, end }) => (
+                  <li key={to}>
+                    <DicaLateral texto={label} ativa={dicas}>
+                      <NavLink
+                        to={to}
+                        end={end}
+                        className={linkClass(recolhida)}
+                        onClick={onClose}
+                      >
+                        <Icone className="w-5 h-5 shrink-0" aria-hidden="true" />
+                        <span className={`truncate ${se(recolhida, R.rotulo)}`}>{label}</span>
+                      </NavLink>
+                    </DicaLateral>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
         </nav>
 
         {/* Rodapé */}
-        <div className="border-t border-white/10 px-4 py-4 flex flex-col gap-2">
-          <SeletorTema variante="faixa" comRotulo className="w-full" />
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 text-white/70 hover:text-white text-sm px-2 py-2 rounded hover:bg-white/10 transition-colors"
-          >
-            <LogOut className="w-4 h-4" aria-hidden="true" />
-            <span>Sair</span>
-          </button>
+        <div className={`border-t border-white/10 px-4 py-3 flex flex-col gap-1.5 ${se(recolhida, R.rodape)}`}>
+          {/* Recolhida: tema em coluna, só ícones. Aberta (ou mobile): com rótulos. */}
+          {recolhida ? (
+            <>
+              <SeletorTema variante="faixa" vertical className="hidden md:inline-flex" />
+              <SeletorTema variante="faixa" comRotulo className="w-full md:hidden" />
+            </>
+          ) : (
+            <SeletorTema variante="faixa" comRotulo className="w-full" />
+          )}
+
+          <DicaLateral texto="Sair" ativa={dicas}>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className={`flex items-center gap-3 text-white/75 hover:text-white text-sm px-2 py-2 rounded-md hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ouro ${se(recolhida, R.item)}`}
+            >
+              <LogOut className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span className={se(recolhida, R.rotulo)}>Sair</span>
+            </button>
+          </DicaLateral>
+
+          {onAlternarRecolhida && (
+            <DicaLateral texto="Expandir menu" ativa={dicas}>
+              <button
+                type="button"
+                onClick={onAlternarRecolhida}
+                aria-expanded={!recolhida}
+                aria-label={recolhida ? 'Expandir menu' : 'Recolher menu'}
+                className={`hidden md:flex items-center gap-3 text-white/75 hover:text-white text-sm px-2 py-2 rounded-md hover:bg-white/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ouro ${se(recolhida, R.item)}`}
+              >
+                {recolhida
+                  ? <PanelLeftOpen className="w-4 h-4 shrink-0" aria-hidden="true" />
+                  : <PanelLeftClose className="w-4 h-4 shrink-0" aria-hidden="true" />}
+                {!recolhida && <span>Recolher menu</span>}
+              </button>
+            </DicaLateral>
+          )}
         </div>
       </aside>
     </>

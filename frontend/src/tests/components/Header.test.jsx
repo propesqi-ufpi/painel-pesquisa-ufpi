@@ -39,4 +39,9 @@ describe('Header — rota desconhecida', () => {
     expect(container).toBeInTheDocument()
     vi.doUnmock('react-router-dom')
   })
+
+  it('mostra o brasão (visível só no mobile, quando a sidebar some)', () => {
+    render(<Header onMenuClick={() => {}} />)
+    expect(screen.getByAltText('Brasão da Universidade Federal do Piauí')).toHaveClass('md:hidden')
+  })
 })
