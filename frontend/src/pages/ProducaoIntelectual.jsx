@@ -8,6 +8,7 @@ import {
 } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import FiltroTexto from '../components/FiltroTexto'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
@@ -91,6 +92,13 @@ export default function ProducaoIntelectual() {
     setFiltroTipo([])
   }
 
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Inventores', valor: filtroInventor, alterar: setFiltroInventor, tipo: 'texto' },
+    { rotulo: 'Ano', valor: filtroAno, alterar: setFiltroAno, opcoes: anosDisponiveis },
+    { rotulo: 'Tipo', valor: filtroTipo, alterar: setFiltroTipo, opcoes: tiposDisponiveis },
+  ]
+
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:h-full">
 
@@ -104,6 +112,8 @@ export default function ProducaoIntelectual() {
 
       {/* ── Conteúdo principal ── */}
       <div className="flex-1 min-w-0 flex flex-col gap-3 min-h-0">
+
+        <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
 
         {/* Cards KPI */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:flex-shrink-0">

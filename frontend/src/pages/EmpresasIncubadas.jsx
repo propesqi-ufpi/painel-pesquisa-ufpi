@@ -8,6 +8,7 @@ import {
 } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
@@ -84,6 +85,12 @@ export default function EmpresasIncubadas() {
 
   const totalDonut = dadosPorIncubadora.reduce((s, d) => s + (d.total ?? 0), 0)
 
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Incubadora', valor: filtroIncubadora, alterar: setFiltroIncubadora, opcoes: opcoesFiltro(opcoes.incubadoras) },
+    { rotulo: 'Situação', valor: filtroSituacao, alterar: setFiltroSituacao, opcoes: opcoesFiltro(opcoes.situacoes) },
+  ]
+
   return (
     <div className="pagina">
 
@@ -118,6 +125,8 @@ export default function EmpresasIncubadas() {
           </div>
         </div>
       </div>
+
+      <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
 
       {/* ── Linha 2: Donut + Tabela ── */}
       <div className="pagina-corpo">
