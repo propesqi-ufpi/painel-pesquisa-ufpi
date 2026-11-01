@@ -94,10 +94,10 @@ export default function ProducaoIntelectual() {
 
 
   return (
-    <div className="h-full flex gap-3">
+    <div className="flex flex-col gap-3 lg:flex-row lg:h-full">
 
       {/* ── Filtros (sidebar esquerda) ── */}
-      <div className="w-40 flex-shrink-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col gap-3">
+      <div className="bg-superficie rounded-xl p-3 shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-3 lg:w-40 lg:flex-shrink-0 lg:flex lg:flex-col">
         <FiltroTexto label="Inventores" value={filtroInventor} onChange={setFiltroInventor} placeholder="Buscar inventor…" />
         <FiltroSelect label="Ano"  value={filtroAno}  onChange={setFiltroAno}  options={anosDisponiveis} />
         <FiltroSelect label="Tipo" value={filtroTipo} onChange={setFiltroTipo} options={tiposDisponiveis} />
@@ -108,7 +108,7 @@ export default function ProducaoIntelectual() {
       <div className="flex-1 min-w-0 flex flex-col gap-3 min-h-0">
 
         {/* Cards KPI */}
-        <div className="flex-shrink-0 grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:flex-shrink-0">
           {loadingKpis ? (
             Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
           ) : (
@@ -122,7 +122,7 @@ export default function ProducaoIntelectual() {
         </div>
 
         {/* Gráficos */}
-        <div className="flex-shrink-0 grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:flex-shrink-0">
 
           <div className="bg-superficie rounded-xl p-3 shadow-sm">
             <div ref={refGraficoPatentes}>
@@ -176,14 +176,14 @@ export default function ProducaoIntelectual() {
         </div>
 
         {/* Tabela Vitrine */}
-        <div className="flex-1 min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
+        <div className="cartao-tabela">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
             <h3 className="text-xs font-semibold text-texto">
               Informações das Produções Intelectuais
             </h3>
             <BotaoExportarCSV dados={vitrine} nomeArquivo="producao_intelectual" colunas={COLUNAS_VITRINE} />
           </div>
-          <div className="flex-1 min-h-0">
+          <div className="cartao-tabela-corpo">
             <TabelaPaginada colunas={COLUNAS_VITRINE} dados={vitrine} loading={loadingVitrine} />
           </div>
         </div>

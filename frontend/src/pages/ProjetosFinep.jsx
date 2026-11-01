@@ -105,12 +105,12 @@ export default function ProjetosFinep() {
   const totalRelacao = dadosRelacao.reduce((s, d) => s + (d.total ?? 0), 0)
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Linha 1: Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3">
+      <div className="pagina-topo">
 
-        <div className="grid grid-cols-2 gap-3 w-56 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-3 lg:w-56 lg:flex-shrink-0">
           {loadingKpis ? (
             <><SkeletonCard /><SkeletonCard /></>
           ) : (
@@ -121,8 +121,8 @@ export default function ProjetosFinep() {
           )}
         </div>
 
-        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
-          <div className="grid grid-cols-3 xl:grid-cols-4 gap-2">
+        <div className="lg:flex-1 bg-superficie rounded-xl p-3 shadow-sm">
+          <div className="grade-filtros">
             <FiltroSelect label="Ano de Início"  value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={opcoesFiltro(opcoes.anos_inicio)} />
             <FiltroSelect label="Ano de Término" value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={opcoesFiltro(opcoes.anos_termino)} />
             <FiltroSelect label="Centro/Campi"   value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.centros)} />
@@ -135,7 +135,7 @@ export default function ProjetosFinep() {
       </div>
 
       {/* ── Linha 2: Donut + Barras ── */}
-      <div className="flex-1 min-h-0 grid grid-cols-2 gap-3">
+      <div className="pagina-corpo">
 
         {/* Donut */}
         <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">

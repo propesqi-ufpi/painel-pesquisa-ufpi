@@ -87,12 +87,12 @@ export default function EmpresasIncubadas() {
   const totalDonut = dadosPorIncubadora.reduce((s, d) => s + (d.total ?? 0), 0)
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Linha 1: Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3">
+      <div className="pagina-topo">
 
-        <div className="grid grid-cols-3 gap-3 flex-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:flex-1">
           {loadingKpis ? (
             <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
           ) : (
@@ -104,7 +104,7 @@ export default function EmpresasIncubadas() {
           )}
         </div>
 
-        <div className="w-56 flex-shrink-0">
+        <div className="lg:w-56 lg:flex-shrink-0">
           <div className="bg-superficie rounded-xl p-3 shadow-sm space-y-2">
             <div className="flex gap-2 items-end">
               <FiltroSelect
@@ -122,7 +122,7 @@ export default function EmpresasIncubadas() {
       </div>
 
       {/* ── Linha 2: Donut + Tabela ── */}
-      <div className="flex-1 min-h-0 grid grid-cols-2 gap-3">
+      <div className="pagina-corpo">
 
         {/* Donut */}
         <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
@@ -171,14 +171,14 @@ export default function EmpresasIncubadas() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col min-h-0">
+        <div className="cartao-tabela">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
             <h3 className="text-xs font-semibold text-texto">
               Informações das Empresas
             </h3>
             <BotaoExportarCSV dados={incubadas} nomeArquivo="incubadas" colunas={COLUNAS} />
           </div>
-          <div className="flex-1 min-h-0">
+          <div className="cartao-tabela-corpo">
             <TabelaPaginada colunas={COLUNAS} dados={incubadas} loading={loadingTabela} />
           </div>
         </div>

@@ -83,18 +83,18 @@ export default function Bolsistas() {
   const totalCampus = dadosPorCampus.reduce((s, d) => s + (d.total ?? 0), 0)
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Linha 1: Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3">
+      <div className="pagina-topo">
 
-        <div className="grid grid-cols-2 gap-3 w-64 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-3 lg:w-64 lg:flex-shrink-0">
           <CardGrande titulo="CNPq" valor={kpis.total_cnpq} loading={loadingKpis} />
           <CardGrande titulo="UFPI" valor={kpis.total_ufpi} loading={loadingKpis} />
         </div>
 
-        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="lg:flex-1 bg-superficie rounded-xl p-3 shadow-sm">
+          <div className="grade-filtros lg:grid-cols-4">
             <FiltroSelect label="Modalidade"    value={filtroModalidade} onChange={setFiltroModalidade} options={opcoesFiltro(opcoes.modalidades)} />
             <FiltroSelect label="Órgão"         value={filtroOrgao}      onChange={setFiltroOrgao}      options={opcoesFiltro(opcoes.orgaos)} />
             <FiltroSelect label="Centro/Campus" value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.campi)} />
@@ -105,7 +105,7 @@ export default function Bolsistas() {
       </div>
 
       {/* ── Gráfico pizza ── */}
-      <div className="flex-1 min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
+      <div className="h-[28rem] lg:h-auto lg:flex-1 lg:min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
         <div ref={refGrafico} className="flex-1 min-h-0">
           <h3 className="text-xs font-semibold text-center text-texto mb-2">
             Bolsistas por Campus/Centro
