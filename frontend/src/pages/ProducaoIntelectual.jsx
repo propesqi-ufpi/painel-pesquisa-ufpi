@@ -17,6 +17,7 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconPatentes, iconSoftwares, iconMarcas } from '../assets/icons.js'
+import { useChartColors } from '../hooks/useChartColors'
 
 const CORES = [
   '#1E3A5F', '#2E5F8A', '#4A90D9', '#7AB3E0', '#A8D1F0',
@@ -34,6 +35,7 @@ const COLUNAS_VITRINE = [
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function ProducaoIntelectual() {
+  const cores = useChartColors()
   const [kpis, setKpis] = useState({})
   const [tiposDisponiveis, setTiposDisponiveis] = useState([])
   const [anosDisponiveis,  setAnosDisponiveis]  = useState([])
@@ -93,10 +95,10 @@ export default function ProducaoIntelectual() {
   const totalSoftwares = dadosSoftwares.reduce((s, d) => s + (d.depositadas ?? 0), 0)
 
   return (
-    <div className="h-full flex gap-3">
+    <div className="lg:h-full flex flex-col lg:flex-row gap-3">
 
       {/* ── Filtros (sidebar esquerda) ── */}
-      <div className="w-40 flex-shrink-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col gap-3">
+      <div className="w-full lg:w-40 flex-shrink-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm grid grid-cols-2 sm:grid-cols-4 lg:flex lg:flex-col gap-3 items-end lg:items-stretch">
         <FiltroTexto label="Inventores" value={filtroInventor} onChange={setFiltroInventor} placeholder="Buscar inventor…" />
         <FiltroSelect label="Ano"  value={filtroAno}  onChange={setFiltroAno}  options={anosDisponiveis} />
         <FiltroSelect label="Tipo" value={filtroTipo} onChange={setFiltroTipo} options={tiposDisponiveis} />
@@ -104,10 +106,10 @@ export default function ProducaoIntelectual() {
       </div>
 
       {/* ── Conteúdo principal ── */}
-      <div className="flex-1 min-w-0 flex flex-col gap-3 min-h-0">
+      <div className="lg:flex-1 min-w-0 flex flex-col gap-3 lg:min-h-0">
 
         {/* Cards KPI */}
-        <div className="flex-shrink-0 grid grid-cols-4 gap-3">
+        <div className="flex-shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-3">
           {loadingKpis ? (
             Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
           ) : (
@@ -121,7 +123,7 @@ export default function ProducaoIntelectual() {
         </div>
 
         {/* Gráficos */}
-        <div className="flex-shrink-0 grid grid-cols-2 gap-3">
+        <div className="flex-shrink-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
 
           <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
             <div ref={refGraficoPatentes}>
@@ -133,11 +135,11 @@ export default function ProducaoIntelectual() {
               ) : (
                 <ResponsiveContainer width="100%" height={170}>
                   <BarChart data={dadosPatentes.slice().reverse()} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" tick={{ fontSize: 10 }} />
-                    <YAxis type="category" dataKey="ano" width={44} tick={{ fontSize: 10 }} />
+                    <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" />
+                    <XAxis type="number" tick={{ fontSize: 10, fill: cores.axis }} />
+                    <YAxis type="category" dataKey="ano" width={44} tick={{ fontSize: 10, fill: cores.axis }} />
                     <Tooltip content={<TooltipGrafico />} />
-                    <Bar dataKey="depositadas" fill="#1E3A5F" radius={[0, 3, 3, 0]} />
+                    <Bar dataKey="depositadas" fill={cores.primary} radius={[0, 3, 3, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -159,7 +161,7 @@ export default function ProducaoIntelectual() {
                   <PieChart>
                     <Pie data={dadosSoftwares} dataKey="depositadas" nameKey="ano" cx="50%" cy="46%" outerRadius={58}>
                       {dadosSoftwares.map((_, i) => (
-                        <Cell key={i} fill={CORES[i % CORES.length]} />
+                        <Cell key={i} fill={cores.paleta(CORES)[i % CORES.length]} />
                       ))}
                     </Pie>
                     <Tooltip content={<TooltipGrafico total={totalSoftwares} />} />
@@ -175,14 +177,14 @@ export default function ProducaoIntelectual() {
         </div>
 
         {/* Tabela Vitrine */}
-        <div className="flex-1 min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+        <div className="lg:flex-1 lg:min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
             <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
               Informações das Produções Intelectuais
             </h3>
             <BotaoExportarCSV dados={vitrine} nomeArquivo="producao_intelectual" colunas={COLUNAS_VITRINE} />
           </div>
-          <div className="flex-1 min-h-0">
+          <div className="h-96 lg:h-auto lg:flex-1 lg:min-h-0">
             <TabelaPaginada colunas={COLUNAS_VITRINE} dados={vitrine} loading={loadingVitrine} />
           </div>
         </div>

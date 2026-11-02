@@ -27,7 +27,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-azul-escuro flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Cabeçalho do card */}
         <div className="bg-azul-escuro px-8 py-7 text-center">
@@ -43,7 +43,7 @@ export default function Login() {
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="username"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-gray-700 dark:text-gray-200"
             >
               Usuário
             </label>
@@ -54,14 +54,14 @@ export default function Login() {
               onChange={(e) => setUsername(e.target.value)}
               required
               autoComplete="username"
-              className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-azul-medio"
+              className="border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg px-4 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-azul-medio"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="password"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-gray-700 dark:text-gray-200"
             >
               Senha
             </label>
@@ -72,14 +72,14 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
-              className="border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-azul-medio"
+              className="border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg px-4 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-azul-medio"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-azul-btn text-white rounded-lg py-2.5 text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
+            className="w-full bg-azul-btn text-white rounded-lg py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
           >
             {loading ? (
               <>
@@ -98,11 +98,11 @@ export default function Login() {
 
         {/* Rodapé */}
         <div className="px-8 pb-7 text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Não tem cadastro?{' '}
             <Link
               to="/cadastro"
-              className="text-azul-medio font-medium hover:underline"
+              className="text-azul-medio dark:text-azul-claro font-medium hover:underline"
             >
               Cadastre-se agora
             </Link>
