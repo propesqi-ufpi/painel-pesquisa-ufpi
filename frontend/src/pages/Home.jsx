@@ -34,7 +34,7 @@ export default function Home() {
   ]
 
   return (
-    <div className="h-full flex flex-col gap-4 justify-center">
+    <div className="min-h-full flex flex-col gap-4 justify-center">
       <h2 className="text-center font-bold text-azul-escuro dark:text-azul-claro text-base uppercase tracking-wide">
         Painel de Pesquisa, Desenvolvimento e Inovação — UFPI
       </h2>

@@ -22,7 +22,7 @@ const links = [
 
 const linkClass = ({ isActive }) =>
   [
-    'flex items-center gap-3 px-4 py-3 text-sm transition-colors border-l-[3px]',
+    'flex items-center gap-3 px-4 min-h-[44px] py-2.5 text-sm transition-colors border-l-[3px]',
     isActive
       ? 'bg-azul-medio text-white border-white'
       : 'text-white/70 border-transparent hover:bg-white/10',
@@ -86,16 +86,16 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="border-t border-white/10 px-4 py-4 flex flex-col gap-2">
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-3 text-white/70 hover:text-white text-sm px-2 py-2 rounded hover:bg-white/10 transition-colors"
+            className="flex items-center gap-3 min-h-[44px] text-white/70 hover:text-white text-sm px-2 py-2 rounded hover:bg-white/10 transition-colors"
           >
-            <span>{dark ? '☀️' : '🌙'}</span>
+            <span>{dark ? <svg data-icon="sol" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4L7 17M17 7l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" /></svg> : <svg data-icon="lua" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>}</span>
             <span>{dark ? 'Modo claro' : 'Modo escuro'}</span>
           </button>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 text-white/70 hover:text-white text-sm px-2 py-2 rounded hover:bg-white/10 transition-colors"
+            className="flex items-center gap-3 min-h-[44px] text-white/70 hover:text-white text-sm px-2 py-2 rounded hover:bg-white/10 transition-colors"
           >
-            <span>🚪</span>
+            <span><svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg></span>
             <span>Sair</span>
           </button>
         </div>

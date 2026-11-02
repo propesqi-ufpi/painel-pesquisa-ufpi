@@ -14,6 +14,7 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconPosGraduacao } from '../assets/icons.js'
+import { useChartColors } from '../hooks/useChartColors'
 
 const COLUNAS = [
   { key: 'programa',       label: 'PROGRAMA' },
@@ -27,13 +28,14 @@ const COLUNAS = [
 ]
 
 function TickRotacionado({ x, y, payload }) {
+  const cores = useChartColors()
   const texto =
     typeof payload.value === 'string' && payload.value.length > 10
       ? payload.value.slice(0, 10) + '…'
       : payload.value
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill="#6B7280" fontSize={9} transform="rotate(-35)">
+      <text x={0} y={0} dy={10} textAnchor="end" fill={cores.axis} fontSize={9} transform="rotate(-35)">
         {texto}
       </text>
     </g>
@@ -58,6 +60,7 @@ function CardPosGrad({ valor, loading }) {
 }
 
 export default function PosGraduacao() {
+  const cores = useChartColors()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCentro, setDadosPorCentro] = useState([])
@@ -113,18 +116,18 @@ export default function PosGraduacao() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="lg:h-full flex flex-col gap-3">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3 items-stretch" style={{ height: '230px' }}>
+      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3 items-stretch lg:h-[230px]">
 
         {/* Card */}
-        <div className="w-44 flex-shrink-0">
+        <div className="w-full lg:w-44 flex-shrink-0">
           <CardPosGrad valor={kpis.total_pos_graduacao} loading={loadingKpis} />
         </div>
 
         {/* Gráfico */}
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+        <div className="lg:flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
           <div ref={refGrafico}>
             <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-1">
               Nº de Pós-graduação x Centro
@@ -134,15 +137,15 @@ export default function PosGraduacao() {
             ) : (
               <ResponsiveContainer width="100%" height={168}>
                 <BarChart data={dadosPorCentro} margin={{ top: 8, right: 8, left: 0, bottom: 40 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="centro" tick={<TickRotacionado />} interval={0}
-                    label={{ value: 'CENTRO', position: 'insideBottom', offset: -30, fontSize: 9, fill: '#6B7280' }}
+                    label={{ value: 'CENTRO', position: 'insideBottom', offset: -30, fontSize: 9, fill: cores.axis }}
                   />
-                  <YAxis tick={{ fontSize: 10 }}
-                    label={{ value: 'Programas', angle: -90, position: 'insideLeft', offset: 10, fontSize: 9, fill: '#6B7280' }}
+                  <YAxis tick={{ fontSize: 10, fill: cores.axis }}
+                    label={{ value: 'Programas', angle: -90, position: 'insideLeft', offset: 10, fontSize: 9, fill: cores.axis }}
                   />
                   <Tooltip content={<TooltipGrafico />} />
-                  <Bar dataKey="total" fill="#2E5F8A" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="total" fill={cores.secondary} radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -153,7 +156,7 @@ export default function PosGraduacao() {
         </div>
 
         {/* Filtros */}
-        <div className="w-52 flex-shrink-0">
+        <div className="w-full lg:w-52 flex-shrink-0">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm h-full">
             <div className="grid grid-cols-2 gap-2">
               <FiltroSelect label="Programa"       value={filtroPrograma} onChange={setFiltroPrograma} options={toOpts(opcoes.programas)} />
@@ -168,14 +171,14 @@ export default function PosGraduacao() {
       </div>
 
       {/* ── Tabela ── */}
-      <div className="flex-1 min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+      <div className="lg:flex-1 lg:min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
           <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
             Informações dos Programas de Pós-Graduação
           </h3>
           <BotaoExportarCSV dados={programas} nomeArquivo="pos_graduacao" colunas={COLUNAS} />
         </div>
-        <div className="flex-1 min-h-0">
+        <div className="h-96 lg:h-auto lg:flex-1 lg:min-h-0">
           <TabelaPaginada colunas={COLUNAS} dados={programas} loading={loadingTabela} />
         </div>
       </div>
