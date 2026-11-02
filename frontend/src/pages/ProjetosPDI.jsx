@@ -16,6 +16,7 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconConcluidos, iconEmAndamento } from '../assets/icons.js'
+import { useChartColors } from '../hooks/useChartColors'
 
 const COLUNAS = [
   { key: 'titulo',      label: 'PROJETOS' },
@@ -27,13 +28,14 @@ const COLUNAS = [
 ]
 
 function TickRotacionado({ x, y, payload }) {
+  const cores = useChartColors()
   const texto =
     typeof payload.value === 'string' && payload.value.length > 12
       ? payload.value.slice(0, 12) + '…'
       : payload.value
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill="#6B7280" fontSize={9} transform="rotate(-35)">
+      <text x={0} y={0} dy={10} textAnchor="end" fill={cores.axis} fontSize={9} transform="rotate(-35)">
         {texto}
       </text>
     </g>
@@ -52,6 +54,7 @@ function toOpts(arr = []) {
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function ProjetosPDI() {
+  const cores = useChartColors()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorArea,   setDadosPorArea]   = useState([])
@@ -115,13 +118,13 @@ export default function ProjetosPDI() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="lg:h-full flex flex-col gap-3">
 
       {/* ── Linha 1: KPI Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3">
+      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3">
 
         {/* Cards */}
-        <div className="grid grid-cols-2 gap-3 w-56 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-3 w-full lg:w-56 flex-shrink-0">
           {loadingKpis ? (
             <><SkeletonCard /><SkeletonCard /></>
           ) : (
@@ -133,8 +136,8 @@ export default function ProjetosPDI() {
         </div>
 
         {/* Filtros */}
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
-          <div className="grid grid-cols-3 xl:grid-cols-4 gap-2">
+        <div className="lg:flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2">
             <FiltroSelect label="Ano Início"   value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={toOpts(opcoes.anos_inicio)} />
             <FiltroSelect label="Ano Término"  value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={toOpts(opcoes.anos_termino)} />
             <FiltroSelect label="Centro/Campi" value={filtroCentro}     onChange={setFiltroCentro}     options={toOpts(opcoes.centros)} />
@@ -147,7 +150,7 @@ export default function ProjetosPDI() {
       </div>
 
       {/* ── Linha 2: Gráficos + Tabela ── */}
-      <div className="flex-1 min-h-0 grid grid-cols-2 gap-3">
+      <div className="lg:flex-1 lg:min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
 
         {/* Coluna de gráficos */}
         <div className="flex flex-col gap-3 min-h-0">
@@ -162,11 +165,11 @@ export default function ProjetosPDI() {
               ) : (
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={dadosPorArea} margin={{ top: 8, right: 8, left: 0, bottom: 48 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="area" tick={<TickRotacionado />} interval={0} />
-                    <YAxis tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10, fill: cores.axis }} />
                     <Tooltip content={<TooltipGrafico />} />
-                    <Bar dataKey="total" fill="#1E3A5F" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="total" fill={cores.primary} radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -186,11 +189,11 @@ export default function ProjetosPDI() {
               ) : (
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={dadosPorCentro} margin={{ top: 8, right: 8, left: 0, bottom: 48 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="centro" tick={<TickRotacionado />} interval={0} />
-                    <YAxis tickFormatter={formatarEixoY} tick={{ fontSize: 10 }} />
+                    <YAxis tickFormatter={formatarEixoY} tick={{ fontSize: 10, fill: cores.axis }} />
                     <Tooltip content={<TooltipGrafico />} />
-                    <Bar dataKey="total" fill="#1E3A5F" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="total" fill={cores.primary} radius={[3, 3, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -209,7 +212,7 @@ export default function ProjetosPDI() {
             </h3>
             <BotaoExportarCSV dados={projetos} nomeArquivo="projetos_pdi" colunas={COLUNAS} />
           </div>
-          <div className="flex-1 min-h-0">
+          <div className="h-96 lg:h-auto lg:flex-1 lg:min-h-0">
             <TabelaPaginada colunas={COLUNAS} dados={projetos} loading={loadingTabela} />
           </div>
         </div>

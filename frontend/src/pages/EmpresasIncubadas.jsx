@@ -15,6 +15,7 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconIncubadas, iconGraduadas, iconInbate } from '../assets/icons.js'
+import { useChartColors } from '../hooks/useChartColors'
 
 const COLUNAS = [
   { key: 'nome_projeto',   label: 'NOME DO PROJETO' },
@@ -35,6 +36,7 @@ function toOpts(arr = []) {
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function EmpresasIncubadas() {
+  const cores = useChartColors()
   const [kpis,               setKpis]               = useState({})
   const [opcoes,             setOpcoes]             = useState({})
   const [dadosPorIncubadora, setDadosPorIncubadora] = useState([])
@@ -83,12 +85,12 @@ export default function EmpresasIncubadas() {
   const totalDonut = dadosPorIncubadora.reduce((s, d) => s + (d.total ?? 0), 0)
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="lg:h-full flex flex-col gap-3">
 
       {/* ── Linha 1: Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3">
+      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3">
 
-        <div className="grid grid-cols-3 gap-3 flex-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:flex-1">
           {loadingKpis ? (
             <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
           ) : (
@@ -100,7 +102,7 @@ export default function EmpresasIncubadas() {
           )}
         </div>
 
-        <div className="w-56 flex-shrink-0">
+        <div className="w-full lg:w-56 flex-shrink-0">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm space-y-2">
             <div className="flex gap-2 items-end">
               <FiltroSelect
@@ -118,7 +120,7 @@ export default function EmpresasIncubadas() {
       </div>
 
       {/* ── Linha 2: Donut + Tabela ── */}
-      <div className="flex-1 min-h-0 grid grid-cols-2 gap-3">
+      <div className="lg:flex-1 lg:min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
 
         {/* Donut */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
@@ -145,7 +147,7 @@ export default function EmpresasIncubadas() {
                     labelLine
                   >
                     {dadosPorIncubadora.map((_, i) => (
-                      <Cell key={i} fill={CORES_DONUT[i % CORES_DONUT.length]} />
+                      <Cell key={i} fill={cores.paleta(CORES_DONUT)[i % CORES_DONUT.length]} />
                     ))}
                   </Pie>
                   <Tooltip content={<TooltipGrafico total={totalDonut} />} />
@@ -169,7 +171,7 @@ export default function EmpresasIncubadas() {
             </h3>
             <BotaoExportarCSV dados={incubadas} nomeArquivo="incubadas" colunas={COLUNAS} />
           </div>
-          <div className="flex-1 min-h-0">
+          <div className="h-96 lg:h-auto lg:flex-1 lg:min-h-0">
             <TabelaPaginada colunas={COLUNAS} dados={incubadas} loading={loadingTabela} />
           </div>
         </div>

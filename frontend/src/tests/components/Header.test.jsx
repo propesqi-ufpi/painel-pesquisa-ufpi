@@ -29,7 +29,7 @@ describe('Header', () => {
 
   it('exibe ícone de lua no modo claro', () => {
     render(<Header onMenuClick={() => {}} />)
-    expect(screen.getByLabelText('Alternar tema').textContent).toContain('🌙')
+    expect(screen.getByLabelText('Alternar tema').querySelector('[data-icon="lua"]')).not.toBeNull()
   })
 
   it('chama toggleTheme ao clicar no botão de tema', () => {
