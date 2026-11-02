@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app import models, schemas
+from app.filtros import em_lista
 from app.dependencies import get_db, verificar_autenticacao
 
 router = APIRouter(prefix="/bolsistas", tags=["Bolsistas"])
@@ -10,10 +11,10 @@ _B = models.Bolsista
 
 
 def _filtrar_bolsistas(q, modalidades=None, orgaos=None, campi=None, nomes=None):
-    if modalidades: q = q.filter(or_(*[_B.modalidade.ilike(f"%{v}%") for v in modalidades]))
-    if orgaos:      q = q.filter(or_(*[_B.orgao.ilike(f"%{v}%") for v in orgaos]))
-    if campi:       q = q.filter(or_(*[_B.campus_centro.ilike(f"%{v}%") for v in campi]))
-    if nomes:       q = q.filter(or_(*[_B.nome.ilike(f"%{v}%") for v in nomes]))
+    if modalidades: q = q.filter(em_lista(_B.modalidade, modalidades))
+    if orgaos:      q = q.filter(em_lista(_B.orgao, orgaos))
+    if campi:       q = q.filter(em_lista(_B.campus_centro, campi))
+    if nomes:       q = q.filter(em_lista(_B.nome, nomes))
     return q
 
 
@@ -46,10 +47,10 @@ def bolsistas_filtros(
     _: dict = Depends(verificar_autenticacao),
 ):
     def _apply(q, exc=None):
-        if exc != 'modalidade'    and modalidade:    q = q.filter(or_(*[_B.modalidade.ilike(f"%{v}%") for v in modalidade]))
-        if exc != 'orgao'         and orgao:         q = q.filter(or_(*[_B.orgao.ilike(f"%{v}%") for v in orgao]))
-        if exc != 'campus_centro' and campus_centro: q = q.filter(or_(*[_B.campus_centro.ilike(f"%{v}%") for v in campus_centro]))
-        if exc != 'nome'          and nome:          q = q.filter(or_(*[_B.nome.ilike(f"%{v}%") for v in nome]))
+        if exc != 'modalidade'    and modalidade:    q = q.filter(em_lista(_B.modalidade, modalidade))
+        if exc != 'orgao'         and orgao:         q = q.filter(em_lista(_B.orgao, orgao))
+        if exc != 'campus_centro' and campus_centro: q = q.filter(em_lista(_B.campus_centro, campus_centro))
+        if exc != 'nome'          and nome:          q = q.filter(em_lista(_B.nome, nome))
         return q
 
     def _vals(col, campo):
