@@ -1,8 +1,9 @@
 from collections import defaultdict
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app import models, schemas
+from app.filtros import em_lista
 from app.dependencies import get_db, verificar_autenticacao
 
 router = APIRouter(prefix="/finep", tags=["FINEP"])
@@ -16,9 +17,9 @@ def _filtrar_finep(q, anos_inicio=None, anos_termino=None, centros=None,
     q = q.filter(_FINEP)
     if anos_inicio:  q = q.filter(_PDI.ano_inicio.in_(anos_inicio))
     if anos_termino: q = q.filter(_PDI.ano_fim.in_(anos_termino))
-    if centros:      q = q.filter(or_(*[_PDI.centro.ilike(f"%{c}%") for c in centros]))
-    if naturezas:    q = q.filter(or_(*[_PDI.natureza.ilike(f"%{n}%") for n in naturezas]))
-    if situacoes:    q = q.filter(or_(*[_PDI.situacao.ilike(f"%{s}%") for s in situacoes]))
+    if centros:      q = q.filter(em_lista(_PDI.centro, centros))
+    if naturezas:    q = q.filter(em_lista(_PDI.natureza, naturezas))
+    if situacoes:    q = q.filter(em_lista(_PDI.situacao, situacoes))
     return q
 
 
@@ -51,9 +52,9 @@ def finep_filtros(
         q = q.filter(_FINEP)
         if exc != 'ano_inicio'  and ano_inicio:  q = q.filter(_PDI.ano_inicio.in_(ano_inicio))
         if exc != 'ano_termino' and ano_termino: q = q.filter(_PDI.ano_fim.in_(ano_termino))
-        if exc != 'centro'      and centro:      q = q.filter(or_(*[_PDI.centro.ilike(f"%{c}%") for c in centro]))
-        if exc != 'natureza'    and natureza:    q = q.filter(or_(*[_PDI.natureza.ilike(f"%{n}%") for n in natureza]))
-        if exc != 'situacao'    and situacao:    q = q.filter(or_(*[_PDI.situacao.ilike(f"%{s}%") for s in situacao]))
+        if exc != 'centro'      and centro:      q = q.filter(em_lista(_PDI.centro, centro))
+        if exc != 'natureza'    and natureza:    q = q.filter(em_lista(_PDI.natureza, natureza))
+        if exc != 'situacao'    and situacao:    q = q.filter(em_lista(_PDI.situacao, situacao))
         return q
 
     def _str_vals(col, campo):
