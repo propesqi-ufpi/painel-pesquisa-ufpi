@@ -16,6 +16,7 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconConcluidos, iconEmAndamento } from '../assets/icons.js'
+import { useChartColors } from '../hooks/useChartColors'
 
 import { opcoesFiltro } from '../utils/exibicao'
 
