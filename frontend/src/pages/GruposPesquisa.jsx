@@ -16,17 +16,17 @@ import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconGrupos } from '../assets/icons.js'
 import { useChartColors } from '../hooks/useChartColors'
 
+import { opcoesFiltro } from '../utils/exibicao'
+
+
 const COLUNAS = [
   { key: 'nome_grupo',        label: 'NOME DO GRUPO' },
-  { key: 'nome_lider',        label: 'NOME DO LÍDER' },
+  { key: 'nome_lider',        label: 'NOME DO LÍDER', tipo: 'pessoas' },
   { key: 'area_predominante', label: 'ÁREA PREDOMINANTE' },
   { key: 'ultimo_envio',      label: 'ÚLTIMO ENVIO' },
   { key: 'status',            label: 'SITUAÇÃO' },
 ]
 
-function toOpts(arr = []) {
-  return arr.map((v) => ({ value: String(v), label: String(v) }))
-}
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
@@ -139,9 +139,9 @@ export default function GruposPesquisa() {
         {/* Filtros */}
         <div className="w-full lg:w-44 flex-shrink-0">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm h-full space-y-2">
-            <FiltroSelect label="Nome do Grupo"       value={filtroNome} onChange={setFiltroNome} options={toOpts(opcoes.nomes)} />
-            <FiltroSelect label="Área"               value={filtroArea} onChange={setFiltroArea} options={toOpts(opcoes.areas)} />
-            <FiltroSelect label="Ano de Atualização" value={filtroAno}  onChange={setFiltroAno}  options={toOpts(opcoes.anos_envio)} />
+            <FiltroSelect label="Nome do Grupo"       value={filtroNome} onChange={setFiltroNome} options={opcoesFiltro(opcoes.nomes)} />
+            <FiltroSelect label="Área"               value={filtroArea} onChange={setFiltroArea} options={opcoesFiltro(opcoes.areas)} />
+            <FiltroSelect label="Ano de Atualização" value={filtroAno}  onChange={setFiltroAno}  options={opcoesFiltro(opcoes.anos_envio)} />
             <BotaoLimparFiltros onClick={limparFiltros} />
           </div>
         </div>

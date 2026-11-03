@@ -16,6 +16,9 @@ import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconPosGraduacao } from '../assets/icons.js'
 import { useChartColors } from '../hooks/useChartColors'
 
+import { opcoesFiltro } from '../utils/exibicao'
+
+
 const COLUNAS = [
   { key: 'programa',       label: 'PROGRAMA' },
   { key: 'fone',           label: 'FONE' },
@@ -42,9 +45,6 @@ function TickRotacionado({ x, y, payload }) {
   )
 }
 
-function toOpts(arr = []) {
-  return arr.map((v) => ({ value: String(v), label: String(v) }))
-}
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
@@ -159,11 +159,11 @@ export default function PosGraduacao() {
         <div className="w-full lg:w-52 flex-shrink-0">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm h-full">
             <div className="grid grid-cols-2 gap-2">
-              <FiltroSelect label="Programa"       value={filtroPrograma} onChange={setFiltroPrograma} options={toOpts(opcoes.programas)} />
-              <FiltroSelect label="Conceito CAPES" value={filtroConceito} onChange={setFiltroConceito} options={toOpts(opcoes.conceitos_capes)} />
-              <FiltroSelect label="Centro/Campi"   value={filtroCentro}   onChange={setFiltroCentro}   options={toOpts(opcoes.centros)} />
-              <FiltroSelect label="Nível"          value={filtroNivel}    onChange={setFiltroNivel}    options={toOpts(opcoes.niveis)} />
-              <FiltroSelect label="Tipo"           value={filtroTipo}     onChange={setFiltroTipo}     options={toOpts(opcoes.tipos)} />
+              <FiltroSelect label="Programa"       value={filtroPrograma} onChange={setFiltroPrograma} options={opcoesFiltro(opcoes.programas)} />
+              <FiltroSelect label="Conceito CAPES" value={filtroConceito} onChange={setFiltroConceito} options={opcoesFiltro(opcoes.conceitos_capes)} />
+              <FiltroSelect label="Centro/Campi"   value={filtroCentro}   onChange={setFiltroCentro}   options={opcoesFiltro(opcoes.centros)} />
+              <FiltroSelect label="Nível"          value={filtroNivel}    onChange={setFiltroNivel}    options={opcoesFiltro(opcoes.niveis)} />
+              <FiltroSelect label="Tipo"           value={filtroTipo}     onChange={setFiltroTipo}     options={opcoesFiltro(opcoes.tipos)} />
               <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
             </div>
           </div>

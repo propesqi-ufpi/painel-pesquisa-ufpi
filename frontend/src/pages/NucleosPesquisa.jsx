@@ -17,10 +17,13 @@ import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconNucleos, iconNucleosAtivos, iconNucleosInativos } from '../assets/icons.js'
 import { useChartColors } from '../hooks/useChartColors'
 
+import { opcoesFiltro } from '../utils/exibicao'
+
+
 const COLUNAS = [
   { key: 'denominacao',   label: 'DENOMINAÇÃO' },
   { key: 'centro_campus', label: 'CENTRO/CAMPUS' },
-  { key: 'coordenador',   label: 'COORDENADOR' },
+  { key: 'coordenador',   label: 'COORDENADOR', tipo: 'pessoas' },
   { key: 'ano_resolucao', label: 'ANO DA RESOLUÇÃO' },
 ]
 
@@ -39,9 +42,6 @@ function TickRotacionado({ x, y, payload }) {
   )
 }
 
-function toOpts(arr = []) {
-  return arr.map((v) => ({ value: String(v), label: String(v) }))
-}
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
@@ -118,10 +118,10 @@ export default function NucleosPesquisa() {
 
         <div className="lg:flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <FiltroSelect label="Centro/Campi" value={filtroCentro}      onChange={setFiltroCentro}      options={toOpts(opcoes.centros)} />
-            <FiltroSelect label="Vinculação"   value={filtroVinculacao}  onChange={setFiltroVinculacao}  options={toOpts(opcoes.vinculacoes)} />
-            <FiltroSelect label="Ano"          value={filtroAno}         onChange={setFiltroAno}         options={toOpts(opcoes.anos)} />
-            <FiltroSelect label="Núcleos"      value={filtroDenominacao} onChange={setFiltroDenominacao} options={toOpts(opcoes.nucleos)} />
+            <FiltroSelect label="Centro/Campi" value={filtroCentro}      onChange={setFiltroCentro}      options={opcoesFiltro(opcoes.centros)} />
+            <FiltroSelect label="Vinculação"   value={filtroVinculacao}  onChange={setFiltroVinculacao}  options={opcoesFiltro(opcoes.vinculacoes)} />
+            <FiltroSelect label="Ano"          value={filtroAno}         onChange={setFiltroAno}         options={opcoesFiltro(opcoes.anos)} />
+            <FiltroSelect label="Núcleos"      value={filtroDenominacao} onChange={setFiltroDenominacao} options={opcoesFiltro(opcoes.nucleos)} />
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>
