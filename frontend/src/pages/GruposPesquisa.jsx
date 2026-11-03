@@ -14,7 +14,9 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconGrupos } from '../assets/icons.js'
+
 import { opcoesFiltro } from '../utils/exibicao'
+
 
 const COLUNAS = [
   { key: 'nome_grupo',        label: 'NOME DO GRUPO' },
@@ -39,6 +41,7 @@ function CardGrupos({ valor, loading }) {
 }
 
 export default function GruposPesquisa() {
+  const cores = useChartColors()
   const [kpis,         setKpis]         = useState({})
   const [opcoes,       setOpcoes]       = useState({})
   const [dadosPorArea, setDadosPorArea] = useState([])
@@ -91,18 +94,18 @@ export default function GruposPesquisa() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="lg:h-full flex flex-col gap-3">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3 items-stretch" style={{ height: '230px' }}>
+      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3 items-stretch lg:h-[230px]">
 
         {/* Card */}
-        <div className="w-44 flex-shrink-0">
+        <div className="w-full lg:w-44 flex-shrink-0">
           <CardGrupos valor={kpis.total_grupos} loading={loadingKpis} />
         </div>
 
         {/* Gráfico */}
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+        <div className="lg:flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
           <div ref={refGrafico}>
             <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-1">
               Nº de Grupos por Área Predominante
@@ -114,13 +117,13 @@ export default function GruposPesquisa() {
                 <div style={{ height: Math.max(148, dadosPorArea.length * 26), width: '100%' }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={dadosPorArea} layout="vertical" margin={{ top: 2, right: 24, left: 0, bottom: 16 }}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                      <YAxis type="category" dataKey="area" width={120} tick={{ fontSize: 9 }} />
-                      <XAxis type="number" tick={{ fontSize: 10 }}
-                        label={{ value: 'N° DE GRUPOS', position: 'insideBottom', offset: -10, fontSize: 9, fill: '#6B7280' }}
+                      <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" horizontal={false} />
+                      <YAxis type="category" dataKey="area" width={120} tick={{ fontSize: 9, fill: cores.axis }} />
+                      <XAxis type="number" tick={{ fontSize: 10, fill: cores.axis }}
+                        label={{ value: 'N° DE GRUPOS', position: 'insideBottom', offset: -10, fontSize: 9, fill: cores.axis }}
                       />
                       <Tooltip content={<TooltipGrafico />} />
-                      <Bar dataKey="total" fill="#2E5F8A" radius={[0, 3, 3, 0]} />
+                      <Bar dataKey="total" fill={cores.secondary} radius={[0, 3, 3, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -133,7 +136,7 @@ export default function GruposPesquisa() {
         </div>
 
         {/* Filtros */}
-        <div className="w-44 flex-shrink-0">
+        <div className="w-full lg:w-44 flex-shrink-0">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm h-full space-y-2">
             <FiltroSelect label="Nome do Grupo"       value={filtroNome} onChange={setFiltroNome} options={opcoesFiltro(opcoes.nomes)} />
             <FiltroSelect label="Área"               value={filtroArea} onChange={setFiltroArea} options={opcoesFiltro(opcoes.areas)} />
@@ -144,14 +147,14 @@ export default function GruposPesquisa() {
       </div>
 
       {/* ── Tabela ── */}
-      <div className="flex-1 min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+      <div className="lg:flex-1 lg:min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
           <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
             Informações dos Grupos de Pesquisas
           </h3>
           <BotaoExportarCSV dados={grupos} nomeArquivo="grupos" colunas={COLUNAS} />
         </div>
-        <div className="flex-1 min-h-0">
+        <div className="h-96 lg:h-auto lg:flex-1 lg:min-h-0">
           <TabelaPaginada colunas={COLUNAS} dados={grupos} loading={loadingTabela} />
         </div>
       </div>

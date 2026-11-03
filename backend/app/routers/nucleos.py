@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app import models, schemas
+from app.filtros import em_lista
 from app.dependencies import get_db, verificar_autenticacao
 
 router = APIRouter(prefix="/nucleos", tags=["Núcleos de Pesquisa"])
@@ -10,10 +11,10 @@ _N = models.NucleoPesquisa
 
 
 def _filtrar_nucleos(q, centros=None, vinculacoes=None, anos=None, denominacoes=None):
-    if centros:      q = q.filter(or_(*[_N.centro_campus.ilike(f"%{v}%") for v in centros]))
-    if vinculacoes:  q = q.filter(or_(*[_N.vinculacao.ilike(f"%{v}%") for v in vinculacoes]))
+    if centros:      q = q.filter(em_lista(_N.centro_campus, centros))
+    if vinculacoes:  q = q.filter(em_lista(_N.vinculacao, vinculacoes))
     if anos:         q = q.filter(_N.ano_resolucao.in_(anos))
-    if denominacoes: q = q.filter(or_(*[_N.denominacao.ilike(f"%{v}%") for v in denominacoes]))
+    if denominacoes: q = q.filter(em_lista(_N.denominacao, denominacoes))
     return q
 
 
@@ -50,10 +51,10 @@ def nucleos_filtros(
     _: dict = Depends(verificar_autenticacao),
 ):
     def _apply(q, exc=None):
-        if exc != 'centro_campus' and centro_campus: q = q.filter(or_(*[_N.centro_campus.ilike(f"%{v}%") for v in centro_campus]))
-        if exc != 'vinculacao'    and vinculacao:    q = q.filter(or_(*[_N.vinculacao.ilike(f"%{v}%") for v in vinculacao]))
+        if exc != 'centro_campus' and centro_campus: q = q.filter(em_lista(_N.centro_campus, centro_campus))
+        if exc != 'vinculacao'    and vinculacao:    q = q.filter(em_lista(_N.vinculacao, vinculacao))
         if exc != 'ano_resolucao' and ano_resolucao: q = q.filter(_N.ano_resolucao.in_(ano_resolucao))
-        if exc != 'denominacao'   and denominacao:   q = q.filter(or_(*[_N.denominacao.ilike(f"%{v}%") for v in denominacao]))
+        if exc != 'denominacao'   and denominacao:   q = q.filter(em_lista(_N.denominacao, denominacao))
         return q
 
     def _str_vals(col, campo, excl_dash=False):
@@ -100,7 +101,7 @@ def listar_nucleos(
 ):
     q = _filtrar_nucleos(db.query(_N), centro_campus, vinculacao, ano_resolucao, denominacao)
     if situacao:
-        q = q.filter(or_(*[_N.situacao.ilike(f"%{s}%") for s in situacao]))
+        q = q.filter(em_lista(_N.situacao, situacao))
     return q.offset(skip).limit(limit).all()
 
 
