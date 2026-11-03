@@ -118,18 +118,18 @@ export default function PosGraduacao() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3 items-stretch" style={{ height: '230px' }}>
+      <div className="pagina-topo-tres lg:h-[230px]">
 
         {/* Card */}
-        <div className="w-44 flex-shrink-0">
+        <div className="lg:w-44 lg:flex-shrink-0">
           <CardPosGrad valor={kpis.total_pos_graduacao} loading={loadingKpis} />
         </div>
 
         {/* Gráfico */}
-        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
+        <div className="topo-grafico bg-superficie rounded-xl p-3 shadow-sm">
           <div ref={refGrafico}>
             <h3 className="text-xs font-semibold text-center text-texto mb-1">
               Nº de Pós-graduação x Centro
@@ -159,7 +159,7 @@ export default function PosGraduacao() {
         </div>
 
         {/* Filtros */}
-        <div className="w-52 flex-shrink-0">
+        <div className="lg:w-52 lg:flex-shrink-0">
           <div className="bg-superficie rounded-xl p-3 shadow-sm h-full">
             <div className="grid grid-cols-2 gap-2">
               <FiltroSelect label="Programa"       value={filtroPrograma} onChange={setFiltroPrograma} options={opcoesFiltro(opcoes.programas)} />
@@ -174,14 +174,14 @@ export default function PosGraduacao() {
       </div>
 
       {/* ── Tabela ── */}
-      <div className="flex-1 min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
+      <div className="cartao-tabela">
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
           <h3 className="text-xs font-semibold text-texto">
             Informações dos Programas de Pós-Graduação
           </h3>
           <BotaoExportarCSV dados={programas} nomeArquivo="pos_graduacao" colunas={COLUNAS} />
         </div>
-        <div className="flex-1 min-h-0">
+        <div className="cartao-tabela-corpo">
           <TabelaPaginada colunas={COLUNAS} dados={programas} loading={loadingTabela} />
         </div>
       </div>

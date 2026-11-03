@@ -101,12 +101,12 @@ export default function NucleosPesquisa() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Linha 1: Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3">
+      <div className="pagina-topo">
 
-        <div className="grid grid-cols-3 gap-3 w-72 flex-shrink-0">
+        <div className="grid grid-cols-3 gap-3 lg:w-72 lg:flex-shrink-0">
           {loadingKpis ? (
             <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
           ) : (
@@ -118,8 +118,8 @@ export default function NucleosPesquisa() {
           )}
         </div>
 
-        <div className="flex-1 bg-superficie rounded-xl p-3 shadow-sm">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="lg:flex-1 bg-superficie rounded-xl p-3 shadow-sm">
+          <div className="grade-filtros lg:grid-cols-4">
             <FiltroSelect label="Centro/Campi" value={filtroCentro}      onChange={setFiltroCentro}      options={opcoesFiltro(opcoes.centros)} />
             <FiltroSelect label="Vinculação"   value={filtroVinculacao}  onChange={setFiltroVinculacao}  options={opcoesFiltro(opcoes.vinculacoes)} />
             <FiltroSelect label="Ano"          value={filtroAno}         onChange={setFiltroAno}         options={opcoesFiltro(opcoes.anos)} />
@@ -130,7 +130,7 @@ export default function NucleosPesquisa() {
       </div>
 
       {/* ── Linha 2: Gráfico + Tabela ── */}
-      <div className="flex-1 min-h-0 grid grid-cols-2 gap-3">
+      <div className="pagina-corpo">
 
         {/* Gráfico */}
         <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
@@ -159,14 +159,14 @@ export default function NucleosPesquisa() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col min-h-0">
+        <div className="cartao-tabela">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
             <h3 className="text-xs font-semibold text-texto">
               Informações dos Núcleos de Pesquisa
             </h3>
             <BotaoExportarCSV dados={nucleos} nomeArquivo="nucleos" colunas={COLUNAS} />
           </div>
-          <div className="flex-1 min-h-0">
+          <div className="cartao-tabela-corpo">
             <TabelaPaginada colunas={COLUNAS} dados={nucleos} loading={loadingTabela} />
           </div>
         </div>
