@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getKPIsGrupos, getFiltrosGrupos, getGruposPorArea, getGrupos } from '../api/index.js'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
@@ -87,6 +88,13 @@ export default function GruposPesquisa() {
     setFiltroAno([])
   }
 
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Nome do Grupo', valor: filtroNome, alterar: setFiltroNome, opcoes: opcoesFiltro(opcoes.nomes) },
+    { rotulo: 'Área', valor: filtroArea, alterar: setFiltroArea, opcoes: opcoesFiltro(opcoes.areas) },
+    { rotulo: 'Ano de Atualização', valor: filtroAno, alterar: setFiltroAno, opcoes: opcoesFiltro(opcoes.anos_envio) },
+  ]
+
   return (
     <div className="pagina">
 
@@ -119,13 +127,15 @@ export default function GruposPesquisa() {
         {/* Filtros */}
         <div className="lg:w-44 lg:flex-shrink-0">
           <div className="bg-superficie rounded-xl p-3 shadow-sm h-full space-y-2">
-            <FiltroSelect label="Nome do Grupo"       value={filtroNome} onChange={setFiltroNome} options={opcoesFiltro(opcoes.nomes)} />
-            <FiltroSelect label="Área"               value={filtroArea} onChange={setFiltroArea} options={opcoesFiltro(opcoes.areas)} />
-            <FiltroSelect label="Ano de Atualização" value={filtroAno}  onChange={setFiltroAno}  options={opcoesFiltro(opcoes.anos_envio)} />
+            {campos.map((c) => (
+              <FiltroSelect key={c.rotulo} label={c.rotulo} value={c.valor} onChange={c.alterar} options={c.opcoes} />
+            ))}
             <BotaoLimparFiltros onClick={limparFiltros} />
           </div>
         </div>
       </div>
+
+      <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
 
       {/* ── Tabela ── */}
       <div className="cartao-tabela">
