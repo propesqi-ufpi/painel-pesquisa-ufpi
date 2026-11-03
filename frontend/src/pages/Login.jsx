@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { Brasao } from '../components/Marca'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -30,11 +31,12 @@ export default function Login() {
       <div className="w-full max-w-md bg-superficie rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Cabeçalho do card */}
-        <div className="bg-faixa px-8 py-7 text-center">
-          <h1 className="text-white text-xl font-bold leading-tight">
+        <div className="bg-faixa px-8 pt-7 pb-6 text-center border-b-[3px] border-ouro flex flex-col items-center">
+          <Brasao tamanho="lg" />
+          <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.08em] text-white/75">UFPI · PROPESQI</p>
+          <h1 className="mt-1 text-white text-xl font-bold leading-tight">
             Painel de Pesquisa e Inovação
           </h1>
-          <p className="text-white/60 text-sm mt-1">UFPI</p>
         </div>
 
         {/* Formulário */}
