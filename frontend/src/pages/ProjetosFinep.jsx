@@ -1,49 +1,29 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  PieChart, Pie, Cell, Legend, Tooltip,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList,
-  ResponsiveContainer,
-} from 'recharts'
-import {
-  getKPIsFinep, getFiltrosFinep,
-  getRelacaoTipoFinep, getPorCentroFinep,
-} from '../api/index.js'
+import { getKPIsFinep, getFiltrosFinep, getRelacaoTipoFinep, getPorCentroFinep } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconFomento, iconProjetos } from '../assets/icons.js'
-import { useChartColors } from '../hooks/useChartColors'
-
 import { opcoesFiltro } from '../utils/exibicao'
-
-
-const CORES_DONUT = ['#1E3A5F', '#4A90D9']
-
+import { useCoresGrafico, useCorPorCategoria } from '../utils/coresGrafico'
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import Rosca from '../components/graficos/Rosca'
+import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 function formatarMi(v) {
   if (v == null) return '-'
   return v.toFixed(2).replace('.', ',') + ' Mi'
 }
 
-function formatarEixoMi(v) {
-  return `R$ ${Number(v).toFixed(1).replace('.', ',')} Mi`
-}
-
-function BarLabelMi({ x, y, width, value }) {
-  return (
-    <text x={x + width / 2} y={y - 3} textAnchor="middle" fontSize={9} className="fill-gray-700 dark:fill-gray-200">
-      {`R$ ${Number(value).toFixed(1).replace('.', ',')} Mi`}
-    </text>
-  )
-}
-
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function ProjetosFinep() {
-  const cores = useChartColors()
+  const cores = useCoresGrafico()
+  const corDe = useCorPorCategoria(cores)
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosRelacao,   setDadosRelacao]   = useState([])
@@ -54,6 +34,7 @@ export default function ProjetosFinep() {
   const [filtroCentro,     setFiltroCentro]     = useState([])
   const [filtroNatureza,   setFiltroNatureza]   = useState([])
   const [filtroSituacao,   setFiltroSituacao]   = useState([])
+  const [filtroModalidade, setFiltroModalidade] = useState([])
 
   const [loadingKpis,     setLoadingKpis]     = useState(true)
   const [loadingGraficos, setLoadingGraficos] = useState(true)
@@ -67,6 +48,7 @@ export default function ProjetosFinep() {
     centro:      fa(filtroCentro),
     natureza:    fa(filtroNatureza),
     situacao:    fa(filtroSituacao),
+    modalidade:  fa(filtroModalidade),
   }
 
   useEffect(() => {
@@ -75,15 +57,19 @@ export default function ProjetosFinep() {
 
   useEffect(() => {
     getFiltrosFinep(filtrosAtivos).then(setOpcoes).catch(() => {})
-  }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroSituacao]) // eslint-disable-line
+  }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroSituacao, filtroModalidade]) // eslint-disable-line
 
   useEffect(() => {
     setLoadingGraficos(true)
-    Promise.all([getRelacaoTipoFinep(filtrosAtivos), getPorCentroFinep(filtrosAtivos)])
+    // Cada gráfico ignora o próprio filtro: mostra tudo e destaca o que está selecionado.
+    Promise.all([getRelacaoTipoFinep(semChave(filtrosAtivos, 'modalidade')), getPorCentroFinep(semChave(filtrosAtivos, 'centro'))])
       .then(([relacao, centro]) => { setDadosRelacao(relacao); setDadosPorCentro(centro) })
       .catch(() => {})
       .finally(() => setLoadingGraficos(false))
-  }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroSituacao]) // eslint-disable-line
+  }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroSituacao, filtroModalidade]) // eslint-disable-line
+
+  const alternarModalidade = (v) => setFiltroModalidade((atual) => alternarValor(atual, v))
+  const alternarCentro     = (v) => setFiltroCentro((atual) => alternarValor(atual, v))
 
   function limparFiltros() {
     setFiltroAnoInicio([])
@@ -91,17 +77,27 @@ export default function ProjetosFinep() {
     setFiltroCentro([])
     setFiltroNatureza([])
     setFiltroSituacao([])
+    setFiltroModalidade([])
   }
 
-  const totalRelacao = dadosRelacao.reduce((s, d) => s + (d.total ?? 0), 0)
+
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Ano de Início', valor: filtroAnoInicio, alterar: setFiltroAnoInicio, opcoes: opcoesFiltro(opcoes.anos_inicio) },
+    { rotulo: 'Ano de Término', valor: filtroAnoTermino, alterar: setFiltroAnoTermino, opcoes: opcoesFiltro(opcoes.anos_termino) },
+    { rotulo: 'Centro/Campi', valor: filtroCentro, alterar: setFiltroCentro, opcoes: opcoesFiltro(opcoes.centros) },
+    { rotulo: 'Natureza', valor: filtroNatureza, alterar: setFiltroNatureza, opcoes: opcoesFiltro(opcoes.naturezas) },
+    { rotulo: 'Situação', valor: filtroSituacao, alterar: setFiltroSituacao, opcoes: opcoesFiltro(opcoes.situacoes) },
+    { rotulo: 'Modalidade', valor: filtroModalidade, alterar: setFiltroModalidade, opcoes: opcoesFiltro(opcoes.modalidades) },
+  ]
 
   return (
-    <div className="lg:h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Linha 1: Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3">
+      <div className="pagina-topo">
 
-        <div className="grid grid-cols-2 gap-3 w-full lg:w-56 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-3 lg:w-56 lg:flex-shrink-0">
           {loadingKpis ? (
             <><SkeletonCard /><SkeletonCard /></>
           ) : (
@@ -112,54 +108,40 @@ export default function ProjetosFinep() {
           )}
         </div>
 
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
-          <div className="grid grid-cols-3 xl:grid-cols-4 gap-2">
-            <FiltroSelect label="Ano de Início"  value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={opcoesFiltro(opcoes.anos_inicio)} />
-            <FiltroSelect label="Ano de Término" value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={opcoesFiltro(opcoes.anos_termino)} />
-            <FiltroSelect label="Centro/Campi"   value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.centros)} />
-            <FiltroSelect label="Natureza"       value={filtroNatureza}   onChange={setFiltroNatureza}   options={opcoesFiltro(opcoes.naturezas)} />
-            <FiltroSelect label="Situação"       value={filtroSituacao}   onChange={setFiltroSituacao}   options={opcoesFiltro(opcoes.situacoes)} />
-
+        <div className="lg:flex-1 bg-superficie rounded-xl p-3 shadow-sm">
+          <div className="grade-filtros">
+            {campos.map((c) => (
+              <FiltroSelect key={c.rotulo} label={c.rotulo} value={c.valor} onChange={c.alterar} options={c.opcoes} />
+            ))}
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>
       </div>
 
+      <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
+
       {/* ── Linha 2: Donut + Barras ── */}
-      <div className="lg:flex-1 lg:min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
+      <div className="pagina-corpo">
 
         {/* Donut */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
-          <div ref={refGraficoDonut} className="flex-1">
-            <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
+          <div ref={refGraficoDonut} className="flex-1 flex flex-col">
+            <h3 className="text-xs font-semibold text-center text-texto mb-2">
               Relação: Internos x Externos
             </h3>
+            <DicaFiltro />
             {loadingGraficos ? (
-              <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+              <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart>
-                  <Pie
-                    data={dadosRelacao}
-                    dataKey="total"
-                    nameKey="tipo"
-                    cx="42%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={95}
-                    label={({ value, percent }) =>
-                      `${value} (${(percent * 100).toFixed(1)}%)`
-                    }
-                    labelLine
-                  >
-                    {dadosRelacao.map((_, i) => (
-                      <Cell key={i} fill={cores.paleta(CORES_DONUT)[i % CORES_DONUT.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<TooltipGrafico total={totalRelacao} />} />
-                  <Legend formatter={(value) => <span className="text-xs text-gray-700 dark:text-gray-300">{value}</span>} />
-                </PieChart>
-              </ResponsiveContainer>
+              <Rosca
+                dados={dadosRelacao}
+                categoria="tipo"
+                corDe={corDe}
+                selecionados={filtroModalidade}
+                onAlternar={alternarModalidade}
+                rotuloTotal="projetos"
+                nomeSerie="Projetos"
+              />
             )}
           </div>
           <div className="flex justify-end mt-1">
@@ -168,25 +150,16 @@ export default function ProjetosFinep() {
         </div>
 
         {/* Barras */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
           <div ref={refGraficoCentro} className="flex-1">
-            <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+            <h3 className="text-xs font-semibold text-center text-texto mb-2">
               Valor Total de Fomento por Centro/Campi
             </h3>
+            <DicaFiltro />
             {loadingGraficos ? (
-              <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+              <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={dadosPorCentro} margin={{ top: 20, right: 8, left: 8, bottom: 8 }}>
-                  <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="centro" tick={{ fontSize: 10, fill: cores.axis }} />
-                  <YAxis tickFormatter={formatarEixoMi} tick={{ fontSize: 9, fill: cores.axis }} width={62} />
-                  <Tooltip content={<TooltipGrafico formatarValor={(v) => `R$ ${formatarMi(v)}`} />} />
-                  <Bar dataKey="valor_mi" fill={cores.secondary} radius={[3, 3, 0, 0]}>
-                    <LabelList content={<BarLabelMi />} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <BarrasHorizontais dados={dadosPorCentro} categoria="centro" valor="valor_mi" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Fomento" formatarValor={(v) => `R$ ${formatarMi(v)}`} alturaMax={240} />
             )}
           </div>
           <div className="flex justify-end mt-1">

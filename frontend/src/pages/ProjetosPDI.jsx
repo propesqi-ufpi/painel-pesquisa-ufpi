@@ -1,25 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
-import {
-  getKPIsProjetosPDI, getFiltrosPDI,
-  getPorAreaPDI, getPorCentroPDI, getProjetosPDI,
-} from '../api/index.js'
+import { getKPIsProjetosPDI, getFiltrosPDI, getPorAreaPDI, getPorCentroPDI, getProjetosPDI } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconConcluidos, iconEmAndamento } from '../assets/icons.js'
-import { useChartColors } from '../hooks/useChartColors'
-
 import { opcoesFiltro } from '../utils/exibicao'
-
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
   { key: 'titulo',      label: 'PROJETOS' },
@@ -30,31 +23,9 @@ const COLUNAS = [
   { key: 'area',        label: 'ÁREA DO CONHECIMENTO' },
 ]
 
-function TickRotacionado({ x, y, payload }) {
-  const cores = useChartColors()
-  const texto =
-    typeof payload.value === 'string' && payload.value.length > 12
-      ? payload.value.slice(0, 12) + '…'
-      : payload.value
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill={cores.axis} fontSize={9} transform="rotate(-35)">
-        {texto}
-      </text>
-    </g>
-  )
-}
-
-function formatarEixoY(v) {
-  if (v >= 1000) return `${(v / 1000).toFixed(1).replace('.', ',')} Mil`
-  return String(v)
-}
-
-
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function ProjetosPDI() {
-  const cores = useChartColors()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorArea,   setDadosPorArea]   = useState([])
@@ -94,7 +65,8 @@ export default function ProjetosPDI() {
 
   useEffect(() => {
     setLoadingGraficos(true)
-    Promise.all([getPorAreaPDI(filtrosAtivos), getPorCentroPDI(filtrosAtivos)])
+    // Cada gráfico ignora o próprio filtro: mostra todas as barras e destaca as selecionadas.
+    Promise.all([getPorAreaPDI(semChave(filtrosAtivos, 'area')), getPorCentroPDI(semChave(filtrosAtivos, 'centro'))])
       .then(([area, centro]) => { setDadosPorArea(area); setDadosPorCentro(centro) })
       .catch(() => {})
       .finally(() => setLoadingGraficos(false))
@@ -108,6 +80,9 @@ export default function ProjetosPDI() {
       .finally(() => setLoadingTabela(false))
   }, [filtroAnoInicio, filtroAnoTermino, filtroCentro, filtroNatureza, filtroArea, filtroSituacao]) // eslint-disable-line
 
+  const alternarArea   = (v) => setFiltroArea((atual) => alternarValor(atual, v))
+  const alternarCentro = (v) => setFiltroCentro((atual) => alternarValor(atual, v))
+
   function limparFiltros() {
     setFiltroAnoInicio([])
     setFiltroAnoTermino([])
@@ -117,14 +92,24 @@ export default function ProjetosPDI() {
     setFiltroSituacao([])
   }
 
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Ano Início', valor: filtroAnoInicio, alterar: setFiltroAnoInicio, opcoes: opcoesFiltro(opcoes.anos_inicio) },
+    { rotulo: 'Ano Término', valor: filtroAnoTermino, alterar: setFiltroAnoTermino, opcoes: opcoesFiltro(opcoes.anos_termino) },
+    { rotulo: 'Centro/Campi', valor: filtroCentro, alterar: setFiltroCentro, opcoes: opcoesFiltro(opcoes.centros) },
+    { rotulo: 'Natureza', valor: filtroNatureza, alterar: setFiltroNatureza, opcoes: opcoesFiltro(opcoes.naturezas) },
+    { rotulo: 'Área', valor: filtroArea, alterar: setFiltroArea, opcoes: opcoesFiltro(opcoes.areas) },
+    { rotulo: 'Situação', valor: filtroSituacao, alterar: setFiltroSituacao, opcoes: opcoesFiltro(opcoes.situacoes) },
+  ]
+
   return (
-    <div className="lg:h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Linha 1: KPI Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3">
+      <div className="pagina-topo">
 
         {/* Cards */}
-        <div className="grid grid-cols-2 gap-3 w-full lg:w-56 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-3 lg:w-56 lg:flex-shrink-0">
           {loadingKpis ? (
             <><SkeletonCard /><SkeletonCard /></>
           ) : (
@@ -136,43 +121,34 @@ export default function ProjetosPDI() {
         </div>
 
         {/* Filtros */}
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
-          <div className="grid grid-cols-3 xl:grid-cols-4 gap-2">
-            <FiltroSelect label="Ano Início"   value={filtroAnoInicio}  onChange={setFiltroAnoInicio}  options={opcoesFiltro(opcoes.anos_inicio)} />
-            <FiltroSelect label="Ano Término"  value={filtroAnoTermino} onChange={setFiltroAnoTermino} options={opcoesFiltro(opcoes.anos_termino)} />
-            <FiltroSelect label="Centro/Campi" value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.centros)} />
-            <FiltroSelect label="Natureza"     value={filtroNatureza}   onChange={setFiltroNatureza}   options={opcoesFiltro(opcoes.naturezas)} />
-            <FiltroSelect label="Área"         value={filtroArea}       onChange={setFiltroArea}       options={opcoesFiltro(opcoes.areas)} />
-            <FiltroSelect label="Situação"     value={filtroSituacao}   onChange={setFiltroSituacao}   options={opcoesFiltro(opcoes.situacoes)} />
-
+        <div className="lg:flex-1 bg-superficie rounded-xl p-3 shadow-sm">
+          <div className="grade-filtros">
+            {campos.map((c) => (
+              <FiltroSelect key={c.rotulo} label={c.rotulo} value={c.valor} onChange={c.alterar} options={c.opcoes} />
+            ))}
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>
       </div>
 
+      <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
+
       {/* ── Linha 2: Gráficos + Tabela ── */}
-      <div className="lg:flex-1 lg:min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
+      <div className="pagina-corpo">
 
         {/* Coluna de gráficos */}
         <div className="flex flex-col gap-3 min-h-0">
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+          <div className="bg-superficie rounded-xl p-3 shadow-sm">
             <div ref={refGraficoArea}>
-              <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+              <h3 className="text-xs font-semibold text-center text-texto mb-2">
                 Nº de Projetos x Área do Conhecimento
               </h3>
+              <DicaFiltro />
               {loadingGraficos ? (
-                <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+                <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
               ) : (
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={dadosPorArea} margin={{ top: 8, right: 8, left: 0, bottom: 48 }}>
-                    <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="area" tick={<TickRotacionado />} interval={0} />
-                    <YAxis tick={{ fontSize: 10, fill: cores.axis }} />
-                    <Tooltip content={<TooltipGrafico />} />
-                    <Bar dataKey="total" fill={cores.primary} radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <BarrasHorizontais dados={dadosPorArea} categoria="area" selecionados={filtroArea} onAlternar={alternarArea} nomeSerie="Projetos" alturaMax={210} />
               )}
             </div>
             <div className="flex justify-end mt-1">
@@ -180,23 +156,16 @@ export default function ProjetosPDI() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+          <div className="bg-superficie rounded-xl p-3 shadow-sm">
             <div ref={refGraficoCentro}>
-              <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+              <h3 className="text-xs font-semibold text-center text-texto mb-2">
                 Nº de Projetos x Centros/Campus
               </h3>
+              <DicaFiltro />
               {loadingGraficos ? (
-                <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+                <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
               ) : (
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={dadosPorCentro} margin={{ top: 8, right: 8, left: 0, bottom: 48 }}>
-                    <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="centro" tick={<TickRotacionado />} interval={0} />
-                    <YAxis tickFormatter={formatarEixoY} tick={{ fontSize: 10, fill: cores.axis }} />
-                    <Tooltip content={<TooltipGrafico />} />
-                    <Bar dataKey="total" fill={cores.primary} radius={[3, 3, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <BarrasHorizontais dados={dadosPorCentro} categoria="centro" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Projetos" alturaMax={210} />
               )}
             </div>
             <div className="flex justify-end mt-1">
@@ -206,14 +175,14 @@ export default function ProjetosPDI() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col min-h-0">
+        <div className="cartao-tabela">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
-            <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+            <h3 className="text-xs font-semibold text-texto">
               Informações dos Projetos de Pesquisas
             </h3>
             <BotaoExportarCSV dados={projetos} nomeArquivo="projetos_pdi" colunas={COLUNAS} />
           </div>
-          <div className="h-96 lg:h-auto lg:flex-1 lg:min-h-0">
+          <div className="cartao-tabela-corpo">
             <TabelaPaginada colunas={COLUNAS} dados={projetos} loading={loadingTabela} />
           </div>
         </div>

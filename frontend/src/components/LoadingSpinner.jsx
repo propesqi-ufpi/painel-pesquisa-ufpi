@@ -7,7 +7,7 @@ const sizes = {
 export default function LoadingSpinner({ size = 'md', fullPage = false }) {
   const spinner = (
     <div
-      className={`animate-spin rounded-full border-azul-btn border-t-transparent ${sizes[size]}`}
+      className={`animate-spin rounded-full border-azul border-t-transparent ${sizes[size]}`}
     />
   )
 

@@ -136,4 +136,35 @@ describe('TabelaPaginada', () => {
     const celula = screen.getByText('Ana de Sousa')
     expect(celula).toHaveAttribute('title', 'PROF. DR. ANA DE SOUSA')
   })
+
+  describe('ordenação pelo cabeçalho', () => {
+    const cols = [{ key: 'nome', label: 'NOME' }, { key: 'ano', label: 'ANO', ordenavel: false }]
+    const linhas = [{ nome: 'Carla' }, { nome: 'ana' }, { nome: null }, { nome: 'Bruno' }]
+    const ordemNaTela = () => screen.getAllByRole('row').slice(1).map((tr) => tr.cells[0].textContent)
+
+    it('clique alterna crescente, decrescente e ordem original', () => {
+      render(<TabelaPaginada colunas={cols} dados={linhas} />)
+      const th = screen.getByRole('columnheader', { name: /NOME/ })
+      const botao = screen.getByRole('button', { name: /NOME/ })
+      expect(th).toHaveAttribute('aria-sort', 'none')
+
+      fireEvent.click(botao)
+      expect(th).toHaveAttribute('aria-sort', 'ascending')
+      expect(ordemNaTela()).toEqual(['ana', 'Bruno', 'Carla', '—'])
+
+      fireEvent.click(botao)
+      expect(th).toHaveAttribute('aria-sort', 'descending')
+      expect(ordemNaTela()).toEqual(['Carla', 'Bruno', 'ana', '—'])
+
+      fireEvent.click(botao)
+      expect(th).toHaveAttribute('aria-sort', 'none')
+      expect(ordemNaTela()).toEqual(['Carla', 'ana', '—', 'Bruno'])
+    })
+
+    it('coluna com ordenavel: false não tem botão', () => {
+      render(<TabelaPaginada colunas={cols} dados={linhas} />)
+      expect(screen.queryByRole('button', { name: /ANO/ })).not.toBeInTheDocument()
+      expect(screen.getByRole('columnheader', { name: 'ANO' })).not.toHaveAttribute('aria-sort')
+    })
+  })
 })

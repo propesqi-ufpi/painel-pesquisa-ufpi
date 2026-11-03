@@ -63,7 +63,8 @@ describe('ProjetosFinep', () => {
 
   it('exibe KPI de total de projetos', async () => {
     renderPage()
-    await waitFor(() => expect(screen.getByText('8')).toBeInTheDocument())
+    // O centro da rosca também mostra o total; o KPI é o <p> do cartão.
+    await waitFor(() => expect(screen.getAllByText('8').some((el) => el.tagName === 'P')).toBe(true))
   })
 
   it('exibe gráfico de pizza (relação tipo)', async () => {

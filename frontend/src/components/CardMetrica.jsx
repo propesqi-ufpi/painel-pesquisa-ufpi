@@ -3,7 +3,7 @@ export default function CardMetrica({ titulo, valor, subtitulo, onClick, icone, 
     <div
       onClick={onClick}
       className={[
-        'bg-azul-escuro text-white p-3 rounded-xl',
+        'bg-faixa text-white p-3 rounded-xl',
         onClick ? 'cursor-pointer hover:scale-105 transition-transform' : '',
       ].join(' ')}
     >

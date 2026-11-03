@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { ChevronDown } from 'lucide-react'
 
 export default function FiltroSelect({
   label,
@@ -34,7 +35,7 @@ export default function FiltroSelect({
   return (
     <div ref={ref} className={`flex flex-col gap-0.5 relative ${className}`}>
       {label && (
-        <label className="text-xs font-medium text-gray-700 dark:text-gray-300">
+        <label className="text-xs font-medium text-texto">
           {label}
         </label>
       )}
@@ -42,26 +43,24 @@ export default function FiltroSelect({
         type="button"
         disabled={disabled}
         onClick={() => setAberto((a) => !a)}
-        className="border border-gray-300 rounded px-2 py-1 bg-white text-xs text-left flex justify-between items-center gap-1 focus:outline-none focus:ring-1 focus:ring-azul-medio disabled:opacity-50 dark:bg-gray-800 dark:text-white dark:border-gray-600 min-w-0"
+        className="border border-borda rounded px-2 py-1 bg-superficie text-xs text-left flex justify-between items-center gap-1 focus:outline-none focus:ring-1 focus:ring-azul disabled:opacity-50  min-w-0"
       >
-        <span className={`truncate ${value.length === 0 ? 'text-gray-400 dark:text-gray-500' : ''}`}>
+        <span className={`truncate ${value.length === 0 ? 'text-texto-suave' : ''}`}>
           {texto}
         </span>
-        <svg
-          className={`w-3 h-3 flex-shrink-0 transition-transform text-gray-500 dark:text-gray-400 ${aberto ? 'rotate-180' : ''}`}
-          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
+        <ChevronDown
+          className={`w-3.5 h-3.5 flex-shrink-0 transition-transform text-texto-suave ${aberto ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
       </button>
 
       {aberto && (
-        <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-superficie border border-borda rounded shadow-lg max-h-48 overflow-y-auto">
           {options.length === 0 ? (
-            <div className="px-2 py-1.5 text-xs text-gray-400">Sem opções</div>
+            <div className="px-2 py-1.5 text-xs text-texto-suave">Sem opções</div>
           ) : (
             <>
-              <label className="flex items-center gap-2 px-2 py-1.5 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+              <label className="flex items-center gap-2 px-2 py-1.5 border-b border-borda hover:bg-azul-suave cursor-pointer">
                 <input
                   type="checkbox"
                   checked={value.length === options.length}
@@ -69,22 +68,22 @@ export default function FiltroSelect({
                     if (value.length === options.length) onChange([])
                     else onChange(options.map((o) => o.value))
                   }}
-                  className="accent-azul-medio w-3 h-3 flex-shrink-0"
+                  className="accent-azul w-3 h-3 flex-shrink-0"
                 />
-                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">Selecionar todos</span>
+                <span className="text-xs font-semibold text-texto-suave">Selecionar todos</span>
               </label>
               {options.map((opt) => (
                 <label
                   key={opt.value}
-                  className="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                  className="flex items-center gap-2 px-2 py-1 hover:bg-azul-suave cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     checked={value.includes(opt.value)}
                     onChange={() => toggle(opt.value)}
-                    className="accent-azul-medio w-3 h-3 flex-shrink-0"
+                    className="accent-azul w-3 h-3 flex-shrink-0"
                   />
-                  <span className="text-xs text-gray-700 dark:text-gray-300 truncate">
+                  <span className="text-xs text-texto truncate">
                     {opt.label}
                   </span>
                 </label>

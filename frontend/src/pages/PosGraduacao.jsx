@@ -1,23 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from 'recharts'
-import {
-  getKPIsPosGraduacao, getFiltrosPosGraduacao,
-  getPosGraduacaoPorCentro, getPosGraduacao,
-} from '../api/index.js'
+import { getKPIsPosGraduacao, getFiltrosPosGraduacao, getPosGraduacaoPorCentro, getPosGraduacao } from '../api/index.js'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconPosGraduacao } from '../assets/icons.js'
-import { useChartColors } from '../hooks/useChartColors'
-
 import { opcoesFiltro } from '../utils/exibicao'
-
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
   { key: 'programa',       label: 'PROGRAMA' },
@@ -30,28 +24,12 @@ const COLUNAS = [
   { key: 'conceito_capes', label: 'CONCEITO CAPES' },
 ]
 
-function TickRotacionado({ x, y, payload }) {
-  const cores = useChartColors()
-  const texto =
-    typeof payload.value === 'string' && payload.value.length > 10
-      ? payload.value.slice(0, 10) + '…'
-      : payload.value
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill={cores.axis} fontSize={9} transform="rotate(-35)">
-        {texto}
-      </text>
-    </g>
-  )
-}
-
-
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 function CardPosGrad({ valor, loading }) {
   if (loading) return <SkeletonCard />
   return (
-    <div className="h-full bg-azul-escuro text-white rounded-xl px-4 py-4 flex flex-col items-center justify-center text-center">
+    <div className="h-full bg-faixa text-white rounded-xl px-4 py-4 flex flex-col items-center justify-center text-center">
       <p className="text-xs font-bold uppercase tracking-wide opacity-80">Pós-Graduação</p>
       <img src={iconPosGraduacao} alt="" className="w-7 h-7 object-contain mt-2 opacity-90" />
       <p className="text-3xl font-bold mt-2">{valor ?? '—'}</p>
@@ -60,7 +38,6 @@ function CardPosGrad({ valor, loading }) {
 }
 
 export default function PosGraduacao() {
-  const cores = useChartColors()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCentro, setDadosPorCentro] = useState([])
@@ -96,7 +73,7 @@ export default function PosGraduacao() {
 
   useEffect(() => {
     setLoadingGrafico(true)
-    getPosGraduacaoPorCentro(filtrosAtivos).then(setDadosPorCentro).catch(() => {}).finally(() => setLoadingGrafico(false))
+    getPosGraduacaoPorCentro(semChave(filtrosAtivos, 'centro')).then(setDadosPorCentro).catch(() => {}).finally(() => setLoadingGrafico(false))
   }, [filtroPrograma, filtroConceito, filtroCentro, filtroNivel, filtroTipo]) // eslint-disable-line
 
   useEffect(() => {
@@ -107,6 +84,8 @@ export default function PosGraduacao() {
       .finally(() => setLoadingTabela(false))
   }, [filtroPrograma, filtroConceito, filtroCentro, filtroNivel, filtroTipo]) // eslint-disable-line
 
+  const alternarCentro = (v) => setFiltroCentro((atual) => alternarValor(atual, v))
+
   function limparFiltros() {
     setFiltroPrograma([])
     setFiltroConceito([])
@@ -115,39 +94,37 @@ export default function PosGraduacao() {
     setFiltroTipo([])
   }
 
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Programa', valor: filtroPrograma, alterar: setFiltroPrograma, opcoes: opcoesFiltro(opcoes.programas) },
+    { rotulo: 'Conceito CAPES', valor: filtroConceito, alterar: setFiltroConceito, opcoes: opcoesFiltro(opcoes.conceitos_capes) },
+    { rotulo: 'Centro/Campi', valor: filtroCentro, alterar: setFiltroCentro, opcoes: opcoesFiltro(opcoes.centros) },
+    { rotulo: 'Nível', valor: filtroNivel, alterar: setFiltroNivel, opcoes: opcoesFiltro(opcoes.niveis) },
+    { rotulo: 'Tipo', valor: filtroTipo, alterar: setFiltroTipo, opcoes: opcoesFiltro(opcoes.tipos) },
+  ]
+
   return (
-    <div className="lg:h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
-      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3 items-stretch lg:h-[230px]">
+      <div className="pagina-topo-tres lg:h-[250px]">
 
         {/* Card */}
-        <div className="w-full lg:w-44 flex-shrink-0">
+        <div className="lg:w-44 lg:flex-shrink-0">
           <CardPosGrad valor={kpis.total_pos_graduacao} loading={loadingKpis} />
         </div>
 
         {/* Gráfico */}
-        <div className="lg:flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+        <div className="topo-grafico bg-superficie rounded-xl p-3 shadow-sm">
           <div ref={refGrafico}>
-            <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-1">
+            <h3 className="text-xs font-semibold text-center text-texto mb-1">
               Nº de Pós-graduação x Centro
             </h3>
+            <DicaFiltro />
             {loadingGrafico ? (
-              <div className="h-40 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+              <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <ResponsiveContainer width="100%" height={168}>
-                <BarChart data={dadosPorCentro} margin={{ top: 8, right: 8, left: 0, bottom: 40 }}>
-                  <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="centro" tick={<TickRotacionado />} interval={0}
-                    label={{ value: 'CENTRO', position: 'insideBottom', offset: -30, fontSize: 9, fill: cores.axis }}
-                  />
-                  <YAxis tick={{ fontSize: 10, fill: cores.axis }}
-                    label={{ value: 'Programas', angle: -90, position: 'insideLeft', offset: 10, fontSize: 9, fill: cores.axis }}
-                  />
-                  <Tooltip content={<TooltipGrafico />} />
-                  <Bar dataKey="total" fill={cores.secondary} radius={[3, 3, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <BarrasHorizontais dados={dadosPorCentro} categoria="centro" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Programas" alturaMax={150} />
             )}
           </div>
           <div className="flex justify-end mt-1">
@@ -156,29 +133,29 @@ export default function PosGraduacao() {
         </div>
 
         {/* Filtros */}
-        <div className="w-full lg:w-52 flex-shrink-0">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm h-full">
+        <div className="lg:w-52 lg:flex-shrink-0">
+          <div className="bg-superficie rounded-xl p-3 shadow-sm h-full">
             <div className="grid grid-cols-2 gap-2">
-              <FiltroSelect label="Programa"       value={filtroPrograma} onChange={setFiltroPrograma} options={opcoesFiltro(opcoes.programas)} />
-              <FiltroSelect label="Conceito CAPES" value={filtroConceito} onChange={setFiltroConceito} options={opcoesFiltro(opcoes.conceitos_capes)} />
-              <FiltroSelect label="Centro/Campi"   value={filtroCentro}   onChange={setFiltroCentro}   options={opcoesFiltro(opcoes.centros)} />
-              <FiltroSelect label="Nível"          value={filtroNivel}    onChange={setFiltroNivel}    options={opcoesFiltro(opcoes.niveis)} />
-              <FiltroSelect label="Tipo"           value={filtroTipo}     onChange={setFiltroTipo}     options={opcoesFiltro(opcoes.tipos)} />
+              {campos.map((c) => (
+                <FiltroSelect key={c.rotulo} label={c.rotulo} value={c.valor} onChange={c.alterar} options={c.opcoes} />
+              ))}
               <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
             </div>
           </div>
         </div>
       </div>
 
+      <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
+
       {/* ── Tabela ── */}
-      <div className="lg:flex-1 lg:min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+      <div className="cartao-tabela">
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
-          <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+          <h3 className="text-xs font-semibold text-texto">
             Informações dos Programas de Pós-Graduação
           </h3>
           <BotaoExportarCSV dados={programas} nomeArquivo="pos_graduacao" colunas={COLUNAS} />
         </div>
-        <div className="h-96 lg:h-auto lg:flex-1 lg:min-h-0">
+        <div className="cartao-tabela-corpo">
           <TabelaPaginada colunas={COLUNAS} dados={programas} loading={loadingTabela} />
         </div>
       </div>

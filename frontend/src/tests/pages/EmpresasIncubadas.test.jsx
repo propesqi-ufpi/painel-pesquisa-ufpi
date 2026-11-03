@@ -61,7 +61,8 @@ describe('EmpresasIncubadas', () => {
 
   it('exibe KPI de empresas incubadas', async () => {
     renderPage()
-    await waitFor(() => expect(screen.getByText('25')).toBeInTheDocument())
+    // O centro da rosca também mostra o total; o KPI é o <p> do cartão.
+    await waitFor(() => expect(screen.getAllByText('25').some((el) => el.tagName === 'P')).toBe(true))
   })
 
   it('exibe KPI de empresas graduadas', async () => {

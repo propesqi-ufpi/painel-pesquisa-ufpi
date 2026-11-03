@@ -1,24 +1,18 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from 'recharts'
-import {
-  getKPIsNucleos, getFiltrosNucleos,
-  getNucleosPorCentro, getNucleos,
-} from '../api/index.js'
+import { getKPIsNucleos, getFiltrosNucleos, getNucleosPorCentro, getNucleos } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconNucleos, iconNucleosAtivos, iconNucleosInativos } from '../assets/icons.js'
-import { useChartColors } from '../hooks/useChartColors'
-
 import { opcoesFiltro } from '../utils/exibicao'
-
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
   { key: 'denominacao',   label: 'DENOMINAÇÃO' },
@@ -27,26 +21,9 @@ const COLUNAS = [
   { key: 'ano_resolucao', label: 'ANO DA RESOLUÇÃO' },
 ]
 
-function TickRotacionado({ x, y, payload }) {
-  const cores = useChartColors()
-  const texto =
-    typeof payload.value === 'string' && payload.value.length > 10
-      ? payload.value.slice(0, 10) + '…'
-      : payload.value
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill={cores.axis} fontSize={9} transform="rotate(-35)">
-        {texto}
-      </text>
-    </g>
-  )
-}
-
-
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function NucleosPesquisa() {
-  const cores = useChartColors()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCentro, setDadosPorCentro] = useState([])
@@ -80,7 +57,7 @@ export default function NucleosPesquisa() {
 
   useEffect(() => {
     setLoadingGrafico(true)
-    getNucleosPorCentro(filtrosAtivos).then(setDadosPorCentro).catch(() => {}).finally(() => setLoadingGrafico(false))
+    getNucleosPorCentro(semChave(filtrosAtivos, 'centro_campus')).then(setDadosPorCentro).catch(() => {}).finally(() => setLoadingGrafico(false))
   }, [filtroCentro, filtroVinculacao, filtroAno, filtroDenominacao]) // eslint-disable-line
 
   useEffect(() => {
@@ -91,6 +68,8 @@ export default function NucleosPesquisa() {
       .finally(() => setLoadingTabela(false))
   }, [filtroCentro, filtroVinculacao, filtroAno, filtroDenominacao]) // eslint-disable-line
 
+  const alternarCentro = (v) => setFiltroCentro((atual) => alternarValor(atual, v))
+
   function limparFiltros() {
     setFiltroCentro([])
     setFiltroVinculacao([])
@@ -98,13 +77,21 @@ export default function NucleosPesquisa() {
     setFiltroDenominacao([])
   }
 
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Centro/Campi', valor: filtroCentro, alterar: setFiltroCentro, opcoes: opcoesFiltro(opcoes.centros) },
+    { rotulo: 'Vinculação', valor: filtroVinculacao, alterar: setFiltroVinculacao, opcoes: opcoesFiltro(opcoes.vinculacoes) },
+    { rotulo: 'Ano', valor: filtroAno, alterar: setFiltroAno, opcoes: opcoesFiltro(opcoes.anos) },
+    { rotulo: 'Núcleos', valor: filtroDenominacao, alterar: setFiltroDenominacao, opcoes: opcoesFiltro(opcoes.nucleos) },
+  ]
+
   return (
-    <div className="lg:h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Linha 1: Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3">
+      <div className="pagina-topo">
 
-        <div className="grid grid-cols-3 gap-3 w-full lg:w-72 flex-shrink-0">
+        <div className="grid grid-cols-3 gap-3 lg:w-72 lg:flex-shrink-0">
           {loadingKpis ? (
             <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
           ) : (
@@ -116,38 +103,32 @@ export default function NucleosPesquisa() {
           )}
         </div>
 
-        <div className="lg:flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <FiltroSelect label="Centro/Campi" value={filtroCentro}      onChange={setFiltroCentro}      options={opcoesFiltro(opcoes.centros)} />
-            <FiltroSelect label="Vinculação"   value={filtroVinculacao}  onChange={setFiltroVinculacao}  options={opcoesFiltro(opcoes.vinculacoes)} />
-            <FiltroSelect label="Ano"          value={filtroAno}         onChange={setFiltroAno}         options={opcoesFiltro(opcoes.anos)} />
-            <FiltroSelect label="Núcleos"      value={filtroDenominacao} onChange={setFiltroDenominacao} options={opcoesFiltro(opcoes.nucleos)} />
+        <div className="lg:flex-1 bg-superficie rounded-xl p-3 shadow-sm">
+          <div className="grade-filtros lg:grid-cols-4">
+            {campos.map((c) => (
+              <FiltroSelect key={c.rotulo} label={c.rotulo} value={c.valor} onChange={c.alterar} options={c.opcoes} />
+            ))}
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>
       </div>
 
+      <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
+
       {/* ── Linha 2: Gráfico + Tabela ── */}
-      <div className="lg:flex-1 lg:min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
+      <div className="pagina-corpo">
 
         {/* Gráfico */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
           <div ref={refGrafico}>
-            <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+            <h3 className="text-xs font-semibold text-center text-texto mb-2">
               Nº de Núcleos x Centro/Campi
             </h3>
+            <DicaFiltro />
             {loadingGrafico ? (
-              <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+              <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={dadosPorCentro} margin={{ top: 8, right: 8, left: 0, bottom: 44 }}>
-                  <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="centro" tick={<TickRotacionado />} interval={0} />
-                  <YAxis tick={{ fontSize: 10, fill: cores.axis }} />
-                  <Tooltip content={<TooltipGrafico />} />
-                  <Bar dataKey="total" fill={cores.primary} radius={[3, 3, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <BarrasHorizontais dados={dadosPorCentro} categoria="centro" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Núcleos" alturaMax={260} />
             )}
           </div>
           <div className="flex justify-end mt-1">
@@ -156,14 +137,14 @@ export default function NucleosPesquisa() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col min-h-0">
+        <div className="cartao-tabela">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
-            <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+            <h3 className="text-xs font-semibold text-texto">
               Informações dos Núcleos de Pesquisa
             </h3>
             <BotaoExportarCSV dados={nucleos} nomeArquivo="nucleos" colunas={COLUNAS} />
           </div>
-          <div className="h-96 lg:h-auto lg:flex-1 lg:min-h-0">
+          <div className="cartao-tabela-corpo">
             <TabelaPaginada colunas={COLUNAS} dados={nucleos} loading={loadingTabela} />
           </div>
         </div>
