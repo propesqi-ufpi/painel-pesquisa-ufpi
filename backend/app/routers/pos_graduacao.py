@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app import models, schemas
+from app.filtros import em_lista
 from app.dependencies import get_db, verificar_autenticacao
 
 router = APIRouter(prefix="/pos-graduacao", tags=["Pós-Graduação"])
@@ -10,11 +11,11 @@ _P = models.PosGraduacao
 
 
 def _filtrar_pos(q, programas=None, conceitos=None, centros=None, niveis=None, tipos=None):
-    if programas:  q = q.filter(or_(*[_P.programa.ilike(f"%{v}%") for v in programas]))
+    if programas:  q = q.filter(em_lista(_P.programa, programas))
     if conceitos:  q = q.filter(_P.conceito_capes.in_(conceitos))
-    if centros:    q = q.filter(or_(*[_P.centro.ilike(f"%{v}%") for v in centros]))
-    if niveis:     q = q.filter(or_(*[_P.nivel.ilike(f"%{v}%") for v in niveis]))
-    if tipos:      q = q.filter(or_(*[_P.tipo.ilike(f"%{v}%") for v in tipos]))
+    if centros:    q = q.filter(em_lista(_P.centro, centros))
+    if niveis:     q = q.filter(em_lista(_P.nivel, niveis))
+    if tipos:      q = q.filter(em_lista(_P.tipo, tipos))
     return q
 
 
@@ -42,11 +43,11 @@ def pos_filtros(
     _: dict = Depends(verificar_autenticacao),
 ):
     def _apply(q, exc=None):
-        if exc != 'programa'       and programa:       q = q.filter(or_(*[_P.programa.ilike(f"%{v}%") for v in programa]))
+        if exc != 'programa'       and programa:       q = q.filter(em_lista(_P.programa, programa))
         if exc != 'conceito_capes' and conceito_capes: q = q.filter(_P.conceito_capes.in_(conceito_capes))
-        if exc != 'centro'         and centro:         q = q.filter(or_(*[_P.centro.ilike(f"%{v}%") for v in centro]))
-        if exc != 'nivel'          and nivel:          q = q.filter(or_(*[_P.nivel.ilike(f"%{v}%") for v in nivel]))
-        if exc != 'tipo'           and tipo:           q = q.filter(or_(*[_P.tipo.ilike(f"%{v}%") for v in tipo]))
+        if exc != 'centro'         and centro:         q = q.filter(em_lista(_P.centro, centro))
+        if exc != 'nivel'          and nivel:          q = q.filter(em_lista(_P.nivel, nivel))
+        if exc != 'tipo'           and tipo:           q = q.filter(em_lista(_P.tipo, tipo))
         return q
 
     def _str_vals(col, campo):

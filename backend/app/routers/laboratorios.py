@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
-from sqlalchemy import func, or_
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app import models, schemas
+from app.filtros import em_lista
 from app.dependencies import get_db, verificar_autenticacao
 
 router = APIRouter(prefix="/laboratorios", tags=["Laboratórios"])
@@ -10,8 +11,8 @@ _L = models.Laboratorio
 
 
 def _filtrar_laboratorios(q, nomes=None, centros=None):
-    if nomes:   q = q.filter(or_(*[_L.nome.ilike(f"%{v}%") for v in nomes]))
-    if centros: q = q.filter(or_(*[_L.centro_campi.ilike(f"%{v}%") for v in centros]))
+    if nomes:   q = q.filter(em_lista(_L.nome, nomes))
+    if centros: q = q.filter(em_lista(_L.centro_campi, centros))
     return q
 
 
@@ -36,8 +37,8 @@ def laboratorios_filtros(
     _: dict = Depends(verificar_autenticacao),
 ):
     def _apply(q, exc=None):
-        if exc != 'nome'         and nome:         q = q.filter(or_(*[_L.nome.ilike(f"%{v}%") for v in nome]))
-        if exc != 'centro_campi' and centro_campi: q = q.filter(or_(*[_L.centro_campi.ilike(f"%{v}%") for v in centro_campi]))
+        if exc != 'nome'         and nome:         q = q.filter(em_lista(_L.nome, nome))
+        if exc != 'centro_campi' and centro_campi: q = q.filter(em_lista(_L.centro_campi, centro_campi))
         return q
 
     def _vals(col, campo):

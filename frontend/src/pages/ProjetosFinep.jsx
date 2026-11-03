@@ -15,7 +15,9 @@ import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconFomento, iconProjetos } from '../assets/icons.js'
+
 import { opcoesFiltro } from '../utils/exibicao'
+
 
 const CORES_DONUT = ['#1E3A5F', '#4A90D9']
 
@@ -31,7 +33,7 @@ function formatarEixoMi(v) {
 
 function BarLabelMi({ x, y, width, value }) {
   return (
-    <text x={x + width / 2} y={y - 3} textAnchor="middle" fontSize={9} fill="#374151">
+    <text x={x + width / 2} y={y - 3} textAnchor="middle" fontSize={9} className="fill-gray-700 dark:fill-gray-200">
       {`R$ ${Number(value).toFixed(1).replace('.', ',')} Mi`}
     </text>
   )
@@ -40,6 +42,7 @@ function BarLabelMi({ x, y, width, value }) {
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function ProjetosFinep() {
+  const cores = useChartColors()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosRelacao,   setDadosRelacao]   = useState([])
@@ -92,12 +95,12 @@ export default function ProjetosFinep() {
   const totalRelacao = dadosRelacao.reduce((s, d) => s + (d.total ?? 0), 0)
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="lg:h-full flex flex-col gap-3">
 
       {/* ── Linha 1: Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3">
+      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3">
 
-        <div className="grid grid-cols-2 gap-3 w-56 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-3 w-full lg:w-56 flex-shrink-0">
           {loadingKpis ? (
             <><SkeletonCard /><SkeletonCard /></>
           ) : (
@@ -115,13 +118,14 @@ export default function ProjetosFinep() {
             <FiltroSelect label="Centro/Campi"   value={filtroCentro}     onChange={setFiltroCentro}     options={opcoesFiltro(opcoes.centros)} />
             <FiltroSelect label="Natureza"       value={filtroNatureza}   onChange={setFiltroNatureza}   options={opcoesFiltro(opcoes.naturezas)} />
             <FiltroSelect label="Situação"       value={filtroSituacao}   onChange={setFiltroSituacao}   options={opcoesFiltro(opcoes.situacoes)} />
+
             <div className="flex items-end"><BotaoLimparFiltros onClick={limparFiltros} /></div>
           </div>
         </div>
       </div>
 
       {/* ── Linha 2: Donut + Barras ── */}
-      <div className="flex-1 min-h-0 grid grid-cols-2 gap-3">
+      <div className="lg:flex-1 lg:min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
 
         {/* Donut */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
@@ -148,7 +152,7 @@ export default function ProjetosFinep() {
                     labelLine
                   >
                     {dadosRelacao.map((_, i) => (
-                      <Cell key={i} fill={CORES_DONUT[i % CORES_DONUT.length]} />
+                      <Cell key={i} fill={cores.paleta(CORES_DONUT)[i % CORES_DONUT.length]} />
                     ))}
                   </Pie>
                   <Tooltip content={<TooltipGrafico total={totalRelacao} />} />
@@ -173,11 +177,11 @@ export default function ProjetosFinep() {
             ) : (
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={dadosPorCentro} margin={{ top: 20, right: 8, left: 8, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="centro" tick={{ fontSize: 10 }} />
-                  <YAxis tickFormatter={formatarEixoMi} tick={{ fontSize: 9 }} width={62} />
+                  <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="centro" tick={{ fontSize: 10, fill: cores.axis }} />
+                  <YAxis tickFormatter={formatarEixoMi} tick={{ fontSize: 9, fill: cores.axis }} width={62} />
                   <Tooltip content={<TooltipGrafico formatarValor={(v) => `R$ ${formatarMi(v)}`} />} />
-                  <Bar dataKey="valor_mi" fill="#2E5F8A" radius={[3, 3, 0, 0]}>
+                  <Bar dataKey="valor_mi" fill={cores.secondary} radius={[3, 3, 0, 0]}>
                     <LabelList content={<BarLabelMi />} />
                   </Bar>
                 </BarChart>

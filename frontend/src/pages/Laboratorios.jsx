@@ -14,7 +14,9 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconLaboratorios } from '../assets/icons.js'
+
 import { opcoesFiltro } from '../utils/exibicao'
+
 
 const COLUNAS = [
   { key: 'nome',        label: 'NOME' },
@@ -44,6 +46,7 @@ function CardLabs({ valor, loading }) {
 }
 
 export default function Laboratorios() {
+  const cores = useChartColors()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCentro, setDadosPorCentro] = useState([])
@@ -92,18 +95,18 @@ export default function Laboratorios() {
   const totalPie = dadosPorCentro.reduce((s, d) => s + (d.total ?? 0), 0)
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="lg:h-full flex flex-col gap-3">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3 items-stretch" style={{ height: '280px' }}>
+      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3 items-stretch lg:h-[280px]">
 
         {/* Card */}
-        <div className="w-44 flex-shrink-0">
+        <div className="w-full lg:w-44 flex-shrink-0">
           <CardLabs valor={kpis.total_laboratorios} loading={loadingKpis} />
         </div>
 
         {/* Gráfico pizza */}
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+        <div className="lg:flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
           <div ref={refGrafico}>
             <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-1">
               Nº de Laboratório x Centro/Campi
@@ -126,7 +129,7 @@ export default function Laboratorios() {
                     labelLine
                   >
                     {dadosPorCentro.map((_, i) => (
-                      <Cell key={i} fill={CORES_PIE[i % CORES_PIE.length]} />
+                      <Cell key={i} fill={cores.paleta(CORES_PIE)[i % CORES_PIE.length]} />
                     ))}
                   </Pie>
                   <Tooltip content={<TooltipGrafico total={totalPie} />} />
@@ -143,7 +146,7 @@ export default function Laboratorios() {
         </div>
 
         {/* Filtros */}
-        <div className="w-44 flex-shrink-0">
+        <div className="w-full lg:w-44 flex-shrink-0">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm h-full space-y-2">
             <FiltroSelect label="Laboratório"  value={filtroNome}   onChange={setFiltroNome}   options={opcoesFiltro(opcoes.nomes)} />
             <FiltroSelect label="Centro/Campi" value={filtroCentro} onChange={setFiltroCentro} options={opcoesFiltro(opcoes.centros)} />
@@ -153,14 +156,14 @@ export default function Laboratorios() {
       </div>
 
       {/* ── Tabela ── */}
-      <div className="flex-1 min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+      <div className="lg:flex-1 lg:min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
         <div className="flex items-center justify-between mb-2 flex-shrink-0">
           <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
             Informações dos Laboratórios
           </h3>
           <BotaoExportarCSV dados={labs} nomeArquivo="laboratorios" colunas={COLUNAS} />
         </div>
-        <div className="flex-1 min-h-0">
+        <div className="h-96 lg:h-auto lg:flex-1 lg:min-h-0">
           <TabelaPaginada colunas={COLUNAS} dados={labs} loading={loadingTabela} />
         </div>
       </div>

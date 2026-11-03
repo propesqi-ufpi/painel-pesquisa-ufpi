@@ -10,7 +10,9 @@ import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
+
 import { opcoesFiltro } from '../utils/exibicao'
+
 
 const CORES_CAMPUS = [
   '#1E3A5F', '#2E5F8A', '#4A90D9', '#E74C3C', '#F39C12',
@@ -32,6 +34,7 @@ function CardGrande({ titulo, valor, loading }) {
 }
 
 export default function Bolsistas() {
+  const cores = useChartColors()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCampus, setDadosPorCampus] = useState([])
@@ -79,17 +82,17 @@ export default function Bolsistas() {
   const totalCampus = dadosPorCampus.reduce((s, d) => s + (d.total ?? 0), 0)
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="lg:h-full flex flex-col gap-3">
 
       {/* ── Linha 1: Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3">
+      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3">
 
-        <div className="grid grid-cols-2 gap-3 w-64 flex-shrink-0">
+        <div className="grid grid-cols-2 gap-3 w-full lg:w-64 flex-shrink-0">
           <CardGrande titulo="CNPq" valor={kpis.total_cnpq} loading={loadingKpis} />
           <CardGrande titulo="UFPI" valor={kpis.total_ufpi} loading={loadingKpis} />
         </div>
 
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+        <div className="lg:flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <FiltroSelect label="Modalidade"    value={filtroModalidade} onChange={setFiltroModalidade} options={opcoesFiltro(opcoes.modalidades)} />
             <FiltroSelect label="Órgão"         value={filtroOrgao}      onChange={setFiltroOrgao}      options={opcoesFiltro(opcoes.orgaos)} />
@@ -101,8 +104,8 @@ export default function Bolsistas() {
       </div>
 
       {/* ── Gráfico pizza ── */}
-      <div className="flex-1 min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
-        <div ref={refGrafico} className="flex-1 min-h-0">
+      <div className="lg:flex-1 lg:min-h-0 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
+        <div ref={refGrafico} className="h-[28rem] lg:h-auto lg:flex-1 lg:min-h-0">
           <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
             Bolsistas por Campus/Centro
           </h3>
@@ -124,7 +127,7 @@ export default function Bolsistas() {
                   labelLine
                 >
                   {dadosPorCampus.map((_, i) => (
-                    <Cell key={i} fill={CORES_CAMPUS[i % CORES_CAMPUS.length]} />
+                    <Cell key={i} fill={cores.paleta(CORES_CAMPUS)[i % CORES_CAMPUS.length]} />
                   ))}
                 </Pie>
                 <Tooltip content={<TooltipGrafico total={totalCampus} />} />

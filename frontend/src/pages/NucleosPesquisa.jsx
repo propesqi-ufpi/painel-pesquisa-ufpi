@@ -15,7 +15,9 @@ import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconNucleos, iconNucleosAtivos, iconNucleosInativos } from '../assets/icons.js'
+
 import { opcoesFiltro } from '../utils/exibicao'
+
 
 const COLUNAS = [
   { key: 'denominacao',   label: 'DENOMINAÇÃO' },
@@ -25,13 +27,14 @@ const COLUNAS = [
 ]
 
 function TickRotacionado({ x, y, payload }) {
+  const cores = useChartColors()
   const texto =
     typeof payload.value === 'string' && payload.value.length > 10
       ? payload.value.slice(0, 10) + '…'
       : payload.value
   return (
     <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill="#6B7280" fontSize={9} transform="rotate(-35)">
+      <text x={0} y={0} dy={10} textAnchor="end" fill={cores.axis} fontSize={9} transform="rotate(-35)">
         {texto}
       </text>
     </g>
@@ -42,6 +45,7 @@ function TickRotacionado({ x, y, payload }) {
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function NucleosPesquisa() {
+  const cores = useChartColors()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCentro, setDadosPorCentro] = useState([])
@@ -94,12 +98,12 @@ export default function NucleosPesquisa() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="lg:h-full flex flex-col gap-3">
 
       {/* ── Linha 1: Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex gap-3">
+      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3">
 
-        <div className="grid grid-cols-3 gap-3 w-72 flex-shrink-0">
+        <div className="grid grid-cols-3 gap-3 w-full lg:w-72 flex-shrink-0">
           {loadingKpis ? (
             <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
           ) : (
@@ -111,7 +115,7 @@ export default function NucleosPesquisa() {
           )}
         </div>
 
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
+        <div className="lg:flex-1 bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <FiltroSelect label="Centro/Campi" value={filtroCentro}      onChange={setFiltroCentro}      options={opcoesFiltro(opcoes.centros)} />
             <FiltroSelect label="Vinculação"   value={filtroVinculacao}  onChange={setFiltroVinculacao}  options={opcoesFiltro(opcoes.vinculacoes)} />
@@ -123,7 +127,7 @@ export default function NucleosPesquisa() {
       </div>
 
       {/* ── Linha 2: Gráfico + Tabela ── */}
-      <div className="flex-1 min-h-0 grid grid-cols-2 gap-3">
+      <div className="lg:flex-1 lg:min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
 
         {/* Gráfico */}
         <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
@@ -136,11 +140,11 @@ export default function NucleosPesquisa() {
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={dadosPorCentro} margin={{ top: 8, right: 8, left: 0, bottom: 44 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <CartesianGrid stroke={cores.grid} strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="centro" tick={<TickRotacionado />} interval={0} />
-                  <YAxis tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10, fill: cores.axis }} />
                   <Tooltip content={<TooltipGrafico />} />
-                  <Bar dataKey="total" fill="#1E3A5F" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="total" fill={cores.primary} radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -158,7 +162,7 @@ export default function NucleosPesquisa() {
             </h3>
             <BotaoExportarCSV dados={nucleos} nomeArquivo="nucleos" colunas={COLUNAS} />
           </div>
-          <div className="flex-1 min-h-0">
+          <div className="h-96 lg:h-auto lg:flex-1 lg:min-h-0">
             <TabelaPaginada colunas={COLUNAS} dados={nucleos} loading={loadingTabela} />
           </div>
         </div>
