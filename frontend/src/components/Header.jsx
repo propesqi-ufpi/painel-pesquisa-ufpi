@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router-dom'
-import { useTheme } from '../context/ThemeContext'
+import { Menu } from 'lucide-react'
 
 const titulos = {
   '/':                     'Geral',
@@ -16,7 +16,6 @@ const titulos = {
 
 export default function Header({ onMenuClick }) {
   const { pathname } = useLocation()
-  const { dark, toggleTheme } = useTheme()
   const titulo = titulos[pathname] ?? ''
 
   return (
@@ -24,25 +23,16 @@ export default function Header({ onMenuClick }) {
       {/* Hamburguer — só mobile */}
       <button
         onClick={onMenuClick}
-        className="md:hidden text-texto-suave text-xl leading-none"
+        className="md:hidden text-texto-suave hover:text-texto rounded p-1 -m-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-azul"
         aria-label="Abrir menu"
       >
-        ☰
+        <Menu className="w-5 h-5" aria-hidden="true" />
       </button>
 
       {/* Título da página */}
       <h1 className="flex-1 text-base font-semibold text-texto">
         {titulo}
       </h1>
-
-      {/* Toggle dark mode — só desktop */}
-      <button
-        onClick={toggleTheme}
-        className="hidden md:block text-texto-suave hover:text-texto transition-colors text-xl"
-        aria-label="Alternar tema"
-      >
-        {dark ? '☀️' : '🌙'}
-      </button>
     </header>
   )
 }

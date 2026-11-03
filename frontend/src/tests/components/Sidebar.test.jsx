@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar'
 
 const mockSair = vi.fn()
+const mockSetTema = vi.fn()
 
 vi.mock('react-router-dom', () => ({
   MemoryRouter: ({ children }) => children,
@@ -15,7 +16,7 @@ vi.mock('../../context/AuthContext', () => ({
 }))
 
 vi.mock('../../context/ThemeContext', () => ({
-  useTheme: () => ({ dark: false, toggleTheme: vi.fn() }),
+  useTheme: () => ({ tema: 'system', setTema: mockSetTema, dark: false, toggleTheme: vi.fn() }),
 }))
 
 function renderSidebar(isOpen = true) {
@@ -49,5 +50,14 @@ describe('Sidebar', () => {
     renderSidebar()
     fireEvent.click(screen.getByText('Sair'))
     expect(mockSair).toHaveBeenCalledTimes(1)
+  })
+
+  it('seletor de tema tem claro, sistema e escuro, com o atual marcado', () => {
+    renderSidebar()
+    const opcoes = screen.getAllByRole('radio')
+    expect(opcoes.map((o) => o.getAttribute('aria-label'))).toEqual(['Tema claro', 'Tema sistema', 'Tema escuro'])
+    expect(screen.getByRole('radio', { name: 'Tema sistema' })).toHaveAttribute('aria-checked', 'true')
+    fireEvent.click(screen.getByRole('radio', { name: 'Tema escuro' }))
+    expect(mockSetTema).toHaveBeenCalledWith('dark')
   })
 })
