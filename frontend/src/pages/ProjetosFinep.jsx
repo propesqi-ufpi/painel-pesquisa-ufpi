@@ -15,6 +15,7 @@ import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconFomento, iconProjetos } from '../assets/icons.js'
+import { useChartColors } from '../hooks/useChartColors'
 
 import { opcoesFiltro } from '../utils/exibicao'
 

@@ -10,6 +10,7 @@ import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
+import { useChartColors } from '../hooks/useChartColors'
 
 import { opcoesFiltro } from '../utils/exibicao'
 
