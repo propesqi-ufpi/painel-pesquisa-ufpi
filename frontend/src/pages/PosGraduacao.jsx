@@ -1,23 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from 'recharts'
-import {
-  getKPIsPosGraduacao, getFiltrosPosGraduacao,
-  getPosGraduacaoPorCentro, getPosGraduacao,
-} from '../api/index.js'
+import { getKPIsPosGraduacao, getFiltrosPosGraduacao, getPosGraduacaoPorCentro, getPosGraduacao } from '../api/index.js'
 import SkeletonCard from '../components/SkeletonCard'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconPosGraduacao } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
-import { useCoresGrafico } from '../utils/coresGrafico'
 import { alternarValor, semChave } from '../utils/filtroCruzado'
-import { barraClicavel } from '../components/graficos/barraClicavel'
+import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
@@ -30,21 +22,6 @@ const COLUNAS = [
   { key: 'tipo',           label: 'TIPO' },
   { key: 'conceito_capes', label: 'CONCEITO CAPES' },
 ]
-
-function TickRotacionado({ x, y, payload, cor }) {
-  const texto =
-    typeof payload.value === 'string' && payload.value.length > 10
-      ? payload.value.slice(0, 10) + '…'
-      : payload.value
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <text x={0} y={0} dy={10} textAnchor="end" fill={cor} fontSize={9} transform="rotate(-35)">
-        {texto}
-      </text>
-    </g>
-  )
-}
-
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
@@ -60,7 +37,6 @@ function CardPosGrad({ valor, loading }) {
 }
 
 export default function PosGraduacao() {
-  const cores = useCoresGrafico()
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCentro, setDadosPorCentro] = useState([])
@@ -121,7 +97,7 @@ export default function PosGraduacao() {
     <div className="pagina">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
-      <div className="pagina-topo-tres lg:h-[230px]">
+      <div className="pagina-topo-tres lg:h-[250px]">
 
         {/* Card */}
         <div className="lg:w-44 lg:flex-shrink-0">
@@ -138,19 +114,7 @@ export default function PosGraduacao() {
             {loadingGrafico ? (
               <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <ResponsiveContainer width="100%" height={168}>
-                <BarChart data={dadosPorCentro} margin={{ top: 8, right: 8, left: 0, bottom: 40 }}>
-                  <CartesianGrid stroke={cores.grade} strokeDasharray="3 3" vertical={false} />
-                  <XAxis stroke={cores.grade} dataKey="centro" tick={<TickRotacionado cor={cores.eixo} />} interval={0}
-                    label={{ value: 'CENTRO', position: 'insideBottom', offset: -30, fontSize: 9, fill: cores.eixo }}
-                  />
-                  <YAxis stroke={cores.grade} tick={{ fontSize: 10, fill: cores.eixo }}
-                    label={{ value: 'Programas', angle: -90, position: 'insideLeft', offset: 10, fontSize: 9, fill: cores.eixo }}
-                  />
-                  <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico />} />
-                  <Bar dataKey="total" fill={cores.serie1} radius={[3, 3, 0, 0]} shape={barraClicavel({ categoria: 'centro', selecionados: filtroCentro, onAlternar: alternarCentro })} />
-                </BarChart>
-              </ResponsiveContainer>
+              <BarrasHorizontais dados={dadosPorCentro} categoria="centro" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Programas" alturaMax={150} />
             )}
           </div>
           <div className="flex justify-end mt-1">

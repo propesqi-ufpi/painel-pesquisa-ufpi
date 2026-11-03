@@ -1,23 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,
-} from 'recharts'
-import {
-  getKPIsBolsistas, getFiltrosBolsistas, getBolsistasPorCampus,
-} from '../api/index.js'
+import { getKPIsBolsistas, getFiltrosBolsistas, getBolsistasPorCampus } from '../api/index.js'
 import SkeletonCard from '../components/SkeletonCard'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { opcoesFiltro } from '../utils/exibicao'
-import { useCoresGrafico, useCorPorCategoria } from '../utils/coresGrafico'
-import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
-import { valorDaFatia } from '../components/graficos/barraClicavel'
-import LegendaClicavel from '../components/graficos/LegendaClicavel'
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
-
-
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
@@ -32,8 +22,6 @@ function CardGrande({ titulo, valor, loading }) {
 }
 
 export default function Bolsistas() {
-  const cores = useCoresGrafico()
-  const corDe = useCorPorCategoria(cores)
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCampus, setDadosPorCampus] = useState([])
@@ -104,9 +92,9 @@ export default function Bolsistas() {
         </div>
       </div>
 
-      {/* ── Gráfico pizza ── */}
-      <div className="h-[28rem] lg:h-auto lg:flex-1 lg:min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
-        <div ref={refGrafico} className="flex-1 min-h-0">
+      {/* ── Gráfico por campus ── */}
+      <div className="lg:flex-1 lg:min-h-0 bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
+        <div ref={refGrafico} className="flex-1 min-h-0 flex flex-col">
           <h3 className="text-xs font-semibold text-center text-texto mb-2">
             Bolsistas por Campus/Centro
           </h3>
@@ -114,37 +102,7 @@ export default function Bolsistas() {
           {loadingGrafico ? (
             <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
           ) : (
-            <ResponsiveContainer width="100%" height="90%">
-              <PieChart>
-                <Pie
-                  stroke={cores.superficie}
-                  strokeWidth={2}
-                  data={dadosPorCampus}
-                  dataKey="total"
-                  nameKey="campus"
-                  className="cursor-pointer"
-                  onClick={(d) => alternarCampus(valorDaFatia(d, 'campus'))}
-                  cx="40%"
-                  cy="50%"
-                  outerRadius={120}
-                  label={({ value, percent }) =>
-                    `${value} (${(percent * 100).toFixed(2).replace('.', ',')}%)`
-                  }
-                  labelLine
-                >
-                  {dadosPorCampus.map((item, i) => (
-                    <Cell key={i} fill={corDe(item.campus)} fillOpacity={opacidade(filtroCentro, item.campus)} />
-                  ))}
-                </Pie>
-                <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico total={totalCampus} />} />
-                <Legend
-                  layout="vertical"
-                  align="right"
-                  verticalAlign="middle"
-                  content={<LegendaClicavel vertical selecionados={filtroCentro} onAlternar={alternarCampus} />}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <BarrasHorizontais dados={dadosPorCampus} categoria="campus" selecionados={filtroCentro} onAlternar={alternarCampus} nomeSerie="Bolsistas" total={totalCampus} className="flex-1 min-h-0 max-h-[60vh] lg:max-h-none" />
           )}
         </div>
         <div className="flex justify-end mt-1 flex-shrink-0">

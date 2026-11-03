@@ -1,24 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
-import {
-  PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,
-} from 'recharts'
-import {
-  getKPIsLaboratorios, getFiltrosLaboratorios,
-  getLaboratoriosPorCentro, getLaboratorios,
-} from '../api/index.js'
+import { getKPIsLaboratorios, getFiltrosLaboratorios, getLaboratoriosPorCentro, getLaboratorios } from '../api/index.js'
 import SkeletonCard from '../components/SkeletonCard'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconLaboratorios } from '../assets/icons.js'
 import { opcoesFiltro } from '../utils/exibicao'
-import { useCoresGrafico, useCorPorCategoria } from '../utils/coresGrafico'
-import { alternarValor, semChave, opacidade } from '../utils/filtroCruzado'
-import { valorDaFatia } from '../components/graficos/barraClicavel'
-import LegendaClicavel from '../components/graficos/LegendaClicavel'
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
@@ -28,8 +19,6 @@ const COLUNAS = [
   { key: 'responsavel', label: 'RESPONSÁVEL', tipo: 'pessoas' },
   { key: 'email',       label: 'EMAIL' },
 ]
-
-
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
@@ -44,9 +33,10 @@ function CardLabs({ valor, loading }) {
   )
 }
 
+// "Em branco" não é um centro: aparece no gráfico, em cinza, mas não filtra.
+const centroFiltravel = (v) => v !== 'Em branco'
+
 export default function Laboratorios() {
-  const cores = useCoresGrafico()
-  const corDe = useCorPorCategoria(cores)
   const [kpis,           setKpis]           = useState({})
   const [opcoes,         setOpcoes]         = useState({})
   const [dadosPorCentro, setDadosPorCentro] = useState([])
@@ -88,7 +78,6 @@ export default function Laboratorios() {
   }, [filtroNome, filtroCentro]) // eslint-disable-line
 
   // "Em branco" é o rótulo do backend para centro vazio; não é um valor filtrável.
-  const centroFiltravel = (v) => v !== 'Em branco'
   const alternarCentro = (v) => { if (centroFiltravel(v)) setFiltroCentro((atual) => alternarValor(atual, v)) }
 
   function limparFiltros() {
@@ -109,7 +98,7 @@ export default function Laboratorios() {
           <CardLabs valor={kpis.total_laboratorios} loading={loadingKpis} />
         </div>
 
-        {/* Gráfico pizza */}
+        {/* Gráfico por centro */}
         <div className="topo-grafico bg-superficie rounded-xl p-3 shadow-sm">
           <div ref={refGrafico}>
             <h3 className="text-xs font-semibold text-center text-texto mb-1">
@@ -119,34 +108,7 @@ export default function Laboratorios() {
             {loadingGrafico ? (
               <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <ResponsiveContainer width="100%" height={215}>
-                <PieChart>
-                  <Pie
-                    stroke={cores.superficie}
-                    strokeWidth={2}
-                    data={dadosPorCentro}
-                    dataKey="total"
-                    nameKey="centro"
-                    className="cursor-pointer"
-                    onClick={(d) => alternarCentro(valorDaFatia(d, 'centro'))}
-                    cx="40%"
-                    cy="50%"
-                    outerRadius={60}
-                    label={({ value, percent }) =>
-                      `${value} (${(percent * 100).toFixed(1).replace('.', ',')}%)`
-                    }
-                    labelLine
-                  >
-                    {dadosPorCentro.map((item, i) => (
-                      <Cell key={i} fill={centroFiltravel(item.centro) ? corDe(item.centro) : cores.outros} fillOpacity={opacidade(filtroCentro, item.centro)} />
-                    ))}
-                  </Pie>
-                  <Tooltip cursor={{ fill: cores.grade, fillOpacity: 0.6 }} content={<TooltipGrafico total={totalPie} />} />
-                  <Legend layout="vertical" align="right" verticalAlign="middle"
-                    content={<LegendaClicavel vertical selecionados={filtroCentro} onAlternar={alternarCentro} podeFiltrar={centroFiltravel} />}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <BarrasHorizontais dados={dadosPorCentro} categoria="centro" selecionados={filtroCentro} onAlternar={alternarCentro} podeFiltrar={centroFiltravel} nomeSerie="Laboratórios" total={totalPie} alturaMax={200} />
             )}
           </div>
           <div className="flex justify-end mt-1">
