@@ -92,7 +92,8 @@ def listar_bolsistas(
     _: dict = Depends(verificar_autenticacao),
 ):
     q = _filtrar_bolsistas(db.query(_B), modalidade, orgao, campus_centro, nome)
-    return q.offset(skip).limit(limit).all()
+    # Ordem alfabética: é a ordem padrão da lista na tela e do CSV exportado.
+    return q.order_by(_B.nome, _B.id).offset(skip).limit(limit).all()
 
 
 @router.get("/{id}", response_model=schemas.BolsistaOut)

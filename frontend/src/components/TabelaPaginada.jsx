@@ -59,8 +59,11 @@ export default function TabelaPaginada({
   totalPaginas,
   onAnterior,
   onProxima,
+  ordemInicial = null,
 }) {
-  const [ordem, setOrdem] = useState(null)
+  // `ordemInicial` (ex.: { key: 'nome', dir: 'asc' }) é só o ponto de partida:
+  // o clique no cabeçalho segue o ciclo normal a partir dela.
+  const [ordem, setOrdem] = useState(ordemInicial)
   const linhas = useMemo(() => ordenarLinhas(dados, colunas, ordem), [dados, colunas, ordem])
 
   if (loading) return <SkeletonTabela />
