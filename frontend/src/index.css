@@ -1,4 +1,89 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Paleta derivada do brasão da UFPI (proposta visual aprovada pela equipe).
+ * Valores em "R G B" para o Tailwind aplicar opacidade: bg-azul/20 etc.
+ * O tema escuro é escolhido à parte, não uma inversão automática.
+ */
+@layer base {
+  :root {
+    color-scheme: light;
+    --faixa:       10 43 87;    /* #0A2B57 sidebar, cabeçalho de tabela, cards de KPI */
+    --sobre-faixa: 255 255 255;
+    --azul:        15 60 120;   /* #0F3C78 ações, links, foco */
+    --sobre-azul:  255 255 255;
+    --azul-suave:  227 236 248; /* #E3ECF8 hover, seleção */
+    --ouro:        224 168 0;   /* #E0A800 destaque pontual: filete, foco, item ativo */
+    --verde:       30 122 76;   /* #1E7A4C */
+    --perigo:      180 35 24;   /* #B42318 */
+    --fundo:       244 246 250; /* #F4F6FA */
+    --superficie:  255 255 255;
+    --superficie-2: 248 250 252;
+    --borda:       214 221 232;
+    --texto:       22 32 46;    /* #16202E */
+    --texto-suave: 84 96 114;   /* 5,9:1 sobre a superfície */
+
+    /* Gráficos: paleta categórica validada (ordem fixa, cor segue a categoria). */
+    --serie-1: #2a78d6; --serie-2: #eb6834; --serie-3: #1baf7a; --serie-4: #eda100;
+    --serie-5: #e87ba4; --serie-6: #008300; --serie-7: #6250d6; --serie-8: #e34948;
+    --serie-outros: #9aa3ae;
+    --grade: #e3e8ef;
+    --eixo:  #5f6b7a;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --faixa:       8 30 61;     /* #081E3D */
+    --sobre-faixa: 255 255 255;
+    --azul:        134 180 240; /* #86B4F0 */
+    --sobre-azul:  12 19 29;
+    --azul-suave:  26 46 74;    /* #1A2E4A */
+    --ouro:        242 194 48;  /* #F2C230 */
+    --verde:       92 192 140;  /* #5CC08C */
+    --perigo:      242 139 130; /* #F28B82 */
+    --fundo:       12 19 29;    /* #0C131D */
+    --superficie:  18 28 41;    /* #121C29 */
+    --superficie-2: 24 36 52;
+    --borda:       42 56 76;
+    --texto:       229 235 242; /* #E5EBF2 */
+    --texto-suave: 156 170 189;
+
+    --serie-1: #3987e5; --serie-2: #d95926; --serie-3: #199e70; --serie-4: #c98500;
+    --serie-5: #d55181; --serie-6: #008300; --serie-7: #9085e9; --serie-8: #e66767;
+    --serie-outros: #6b7685;
+    --grade: #243246;
+    --eixo:  #9caabd;
+  }
+
+  body {
+    @apply bg-fundo text-texto font-sans antialiased;
+  }
+}
+
+/*
+ * Esqueleto das páginas. Até 1023 px tudo empilha e a página rola; a partir de
+ * lg (1024 px) volta o painel de tela única, com a tabela rolando por dentro.
+ */
+@layer components {
+  .pagina          { @apply flex flex-col gap-3 lg:h-full; }
+  .pagina-topo     { @apply flex flex-col gap-3 lg:flex-row lg:flex-shrink-0; }
+  .pagina-corpo    { @apply grid grid-cols-1 gap-3 lg:flex-1 lg:min-h-0 lg:grid-cols-2; }
+  .grade-filtros   { @apply grid grid-cols-2 gap-2 lg:grid-cols-3 xl:grid-cols-4; }
+  /* No celular a tabela cresce até 75% da tela e daí rola por dentro do cartão. */
+  .cartao-tabela   { @apply bg-superficie rounded-xl p-3 shadow-sm flex flex-col max-h-[75vh] lg:max-h-none lg:min-h-0 lg:flex-1; }
+  .cartao-tabela-corpo { @apply flex-1 min-h-0 flex flex-col; }
+  /* Linha de cima de Grupos, Pós-Graduação e Laboratórios: destaque, gráfico e filtros. */
+  .pagina-topo-tres { @apply grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-shrink-0 lg:items-stretch; }
+  .pagina-topo-tres > .topo-grafico { @apply order-last sm:col-span-2 lg:order-none lg:flex-1; }
+}
+
+/* Eixos dos gráficos em Plex Condensed: nomes de centros e áreas são longos. */
+@layer components {
+  .recharts-cartesian-axis-tick-value,
+  .recharts-label {
+    font-family: theme('fontFamily.condensed');
+  }
+}

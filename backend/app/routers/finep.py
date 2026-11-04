@@ -13,13 +13,14 @@ _FINEP = _PDI.agencia_fomento.ilike("FINEP")
 
 
 def _filtrar_finep(q, anos_inicio=None, anos_termino=None, centros=None,
-                   naturezas=None, situacoes=None):
+                   naturezas=None, situacoes=None, modalidades=None):
     q = q.filter(_FINEP)
     if anos_inicio:  q = q.filter(_PDI.ano_inicio.in_(anos_inicio))
     if anos_termino: q = q.filter(_PDI.ano_fim.in_(anos_termino))
     if centros:      q = q.filter(em_lista(_PDI.centro, centros))
     if naturezas:    q = q.filter(em_lista(_PDI.natureza, naturezas))
     if situacoes:    q = q.filter(em_lista(_PDI.situacao, situacoes))
+    if modalidades:  q = q.filter(em_lista(_PDI.modalidade, modalidades))
     return q
 
 
@@ -45,6 +46,7 @@ def finep_filtros(
     centro:      list[str] = Query(default=[]),
     natureza:    list[str] = Query(default=[]),
     situacao:    list[str] = Query(default=[]),
+    modalidade:  list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
@@ -55,6 +57,7 @@ def finep_filtros(
         if exc != 'centro'      and centro:      q = q.filter(em_lista(_PDI.centro, centro))
         if exc != 'natureza'    and natureza:    q = q.filter(em_lista(_PDI.natureza, natureza))
         if exc != 'situacao'    and situacao:    q = q.filter(em_lista(_PDI.situacao, situacao))
+        if exc != 'modalidade'  and modalidade:  q = q.filter(em_lista(_PDI.modalidade, modalidade))
         return q
 
     def _str_vals(col, campo):
@@ -69,6 +72,8 @@ def finep_filtros(
         "centros":      _str_vals(_PDI.centro,     'centro'),
         "naturezas":    _str_vals(_PDI.natureza,   'natureza'),
         "situacoes":    _str_vals(_PDI.situacao,   'situacao'),
+        # Mesmo agrupamento do gráfico /relacao-tipo, para o rótulo bater com a fatia.
+        "modalidades":  sorted({v.strip().title() for v in _str_vals(_PDI.modalidade, 'modalidade') if v.strip()}),
     }
 
 
@@ -79,12 +84,13 @@ def finep_relacao_tipo(
     centro:      list[str] = Query(default=[]),
     natureza:    list[str] = Query(default=[]),
     situacao:    list[str] = Query(default=[]),
+    modalidade:  list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
     q = db.query(_PDI.modalidade, func.count(_PDI.id).label("total"))
     q = q.filter(_PDI.modalidade != None)
-    q = _filtrar_finep(q, ano_inicio, ano_termino, centro, natureza, situacao)
+    q = _filtrar_finep(q, ano_inicio, ano_termino, centro, natureza, situacao, modalidade)
     rows = q.group_by(_PDI.modalidade).all()
     agrupado: dict[str, int] = defaultdict(int)
     for r in rows:
@@ -102,12 +108,13 @@ def finep_por_centro(
     centro:      list[str] = Query(default=[]),
     natureza:    list[str] = Query(default=[]),
     situacao:    list[str] = Query(default=[]),
+    modalidade:  list[str] = Query(default=[]),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
     q = db.query(_PDI.centro, func.sum(_PDI.valor_total).label("valor_total"))
     q = q.filter(_PDI.centro != None, _PDI.centro != "--")
-    q = _filtrar_finep(q, ano_inicio, ano_termino, centro, natureza, situacao)
+    q = _filtrar_finep(q, ano_inicio, ano_termino, centro, natureza, situacao, modalidade)
     rows = (
         q.group_by(_PDI.centro)
         .order_by(func.sum(_PDI.valor_total).desc())
@@ -126,12 +133,13 @@ def listar_finep(
     centro:      list[str] = Query(default=[]),
     natureza:    list[str] = Query(default=[]),
     situacao:    list[str] = Query(default=[]),
+    modalidade:  list[str] = Query(default=[]),
     skip:  int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
     _: dict = Depends(verificar_autenticacao),
 ):
-    q = _filtrar_finep(db.query(_PDI), ano_inicio, ano_termino, centro, natureza, situacao)
+    q = _filtrar_finep(db.query(_PDI), ano_inicio, ano_termino, centro, natureza, situacao, modalidade)
     return q.offset(skip).limit(limit).all()
 
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { cadastrar } from '../api/index.js'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { Brasao } from '../components/Marca'
 
 export default function Cadastro() {
   const [username, setUsername] = useState('')
@@ -43,27 +44,29 @@ export default function Cadastro() {
   }
 
   return (
-    <div className="min-h-screen bg-azul-escuro flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="min-h-screen bg-faixa flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-superficie rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Cabeçalho */}
-        <div className="bg-azul-escuro px-8 py-7 text-center">
-          <h1 className="text-white text-xl font-bold leading-tight">
-            Criar Conta
+        <div className="bg-faixa px-8 pt-7 pb-6 text-center border-b-[3px] border-ouro flex flex-col items-center">
+          <Brasao tamanho="lg" />
+          <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.08em] text-white/75">UFPI · PROPESQI</p>
+          <h1 className="mt-1 text-white text-xl font-bold leading-tight">
+            Criar conta
           </h1>
-          <p className="text-white/60 text-sm mt-1">Painel de Pesquisa e Inovação — UFPI</p>
+          <p className="text-white/70 text-sm mt-1">Painel de Pesquisa e Inovação</p>
         </div>
 
         {sucesso ? (
           <div className="px-8 py-10 text-center space-y-3">
-            <p className="text-green-600 font-semibold">Cadastro realizado com sucesso!</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Redirecionando para o login…</p>
+            <p className="text-verde font-semibold">Cadastro realizado com sucesso!</p>
+            <p className="text-sm text-texto-suave">Redirecionando para o login…</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="px-8 py-8 space-y-5">
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="username" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label htmlFor="username" className="text-sm font-medium text-texto">
                 Usuário
               </label>
               <input
@@ -73,12 +76,12 @@ export default function Cadastro() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 autoComplete="username"
-                className="border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg px-4 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-azul-medio"
+                className="border border-borda rounded-lg px-4 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-azul"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label htmlFor="password" className="text-sm font-medium text-texto">
                 Senha
               </label>
               <input
@@ -88,12 +91,12 @@ export default function Cadastro() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg px-4 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-azul-medio"
+                className="border border-borda rounded-lg px-4 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-azul"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="confirmar" className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label htmlFor="confirmar" className="text-sm font-medium text-texto">
                 Confirmar Senha
               </label>
               <input
@@ -103,14 +106,14 @@ export default function Cadastro() {
                 onChange={(e) => setConfirmar(e.target.value)}
                 required
                 autoComplete="new-password"
-                className="border border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-white rounded-lg px-4 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-azul-medio"
+                className="border border-borda rounded-lg px-4 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-azul"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-azul-btn text-white rounded-lg py-3 text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
+              className="w-full bg-azul text-sobre-azul rounded-lg py-2.5 text-sm font-semibold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 transition-opacity"
             >
               {loading ? (
                 <>
@@ -123,16 +126,16 @@ export default function Cadastro() {
             </button>
 
             {erro && (
-              <p className="text-red-500 text-xs text-center">{erro}</p>
+              <p className="text-perigo text-xs text-center">{erro}</p>
             )}
           </form>
         )}
 
         {/* Rodapé */}
         <div className="px-8 pb-7 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-texto-suave">
             Já tem conta?{' '}
-            <Link to="/login" className="text-azul-medio dark:text-azul-claro font-medium hover:underline">
+            <Link to="/login" className="text-azul font-medium hover:underline">
               Fazer login
             </Link>
           </p>

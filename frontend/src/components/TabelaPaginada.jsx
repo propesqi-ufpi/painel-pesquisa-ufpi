@@ -1,5 +1,39 @@
+import { useMemo, useState } from 'react'
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import SkeletonTabela from './SkeletonTabela'
 import { valorExibicao, VAZIO } from '../utils/exibicao'
+import { ordenarLinhas, proximaOrdem } from '../utils/ordenacao'
+
+const ARIA_SORT = { asc: 'ascending', desc: 'descending' }
+const PROXIMA_ACAO = { asc: 'decrescente', desc: 'sem ordenação' }
+
+function IconeOrdem({ dir }) {
+  const Icone = dir === 'asc' ? ArrowUp : dir === 'desc' ? ArrowDown : ArrowUpDown
+  return <Icone className="w-3 h-3 flex-shrink-0" strokeWidth={2.5} aria-hidden="true" />
+}
+
+function Cabecalho({ coluna, ordem, onOrdenar }) {
+  const ativa = ordem?.key === coluna.key ? ordem.dir : null
+  if (coluna.ordenavel === false) {
+    return <th scope="col" className="text-xs font-semibold py-2 px-3 whitespace-nowrap">{coluna.label}</th>
+  }
+
+  return (
+    <th scope="col" aria-sort={ARIA_SORT[ativa] ?? 'none'} className="text-xs whitespace-nowrap p-0">
+      <button
+        type="button"
+        onClick={() => onOrdenar(coluna.key)}
+        title={`Ordenar: ${ativa ? PROXIMA_ACAO[ativa] : 'crescente'}`}
+        className="group w-full flex items-center gap-1 py-2 px-3 text-left font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70"
+      >
+        <span>{coluna.label}</span>
+        <span className={`transition-opacity ${ativa ? 'opacity-100' : 'opacity-0 group-hover:opacity-70 group-focus-visible:opacity-70'}`}>
+          <IconeOrdem dir={ativa} />
+        </span>
+      </button>
+    </th>
+  )
+}
 
 function Celula({ coluna, linha }) {
   const valor = valorExibicao(coluna, linha)
@@ -8,10 +42,10 @@ function Celula({ coluna, linha }) {
   const original = bruto != null && String(bruto).trim() !== String(valor ?? '') ? String(bruto) : undefined
 
   return (
-    <td title={original} className="text-xs py-1.5 px-3 dark:text-gray-200">
+    <td title={original} className="text-xs py-1.5 px-3">
       {coluna.render
         ? coluna.render(valor, linha)
-        : valor ?? <span className="text-gray-400 dark:text-gray-500" aria-label="Não informado">{VAZIO}</span>}
+        : valor ?? <span className="text-texto-suave" aria-label="Não informado">{VAZIO}</span>}
     </td>
   )
 }
@@ -26,37 +60,43 @@ export default function TabelaPaginada({
   onAnterior,
   onProxima,
 }) {
+  const [ordem, setOrdem] = useState(null)
+  const linhas = useMemo(() => ordenarLinhas(dados, colunas, ordem), [dados, colunas, ordem])
+
   if (loading) return <SkeletonTabela />
 
   const comPaginacao = totalPaginas != null && totalPaginas > 0
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full min-h-0 flex flex-col">
       <div className="flex-1 overflow-y-auto overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-collapse font-condensed tabular-nums">
           <thead className="sticky top-0 z-10">
-            <tr className="bg-azul-escuro text-white">
+            <tr className="bg-faixa text-white">
               {colunas.map((col) => (
-                <th key={col.key} className="text-xs font-semibold py-2 px-3 whitespace-nowrap">
-                  {col.label}
-                </th>
+                <Cabecalho
+                  key={col.key}
+                  coluna={col}
+                  ordem={ordem}
+                  onOrdenar={(key) => setOrdem((atual) => proximaOrdem(atual, key))}
+                />
               ))}
             </tr>
           </thead>
           <tbody>
             {dados.length === 0 ? (
               <tr>
-                <td colSpan={colunas.length} className="text-center py-6 text-gray-500 text-xs">
+                <td colSpan={colunas.length} className="text-center py-6 text-texto-suave text-xs">
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
-              dados.map((linha, i) => (
+              linhas.map((linha, i) => (
                 <tr
-                  key={i}
+                  key={linha.id ?? i}
                   className={`${
-                    i % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'
-                  } hover:bg-azul-claro dark:hover:bg-gray-700 transition-colors`}
+                    i % 2 === 0 ? 'bg-superficie' : 'bg-superficie-2'
+                  } hover:bg-azul-suave transition-colors`}
                 >
                   {colunas.map((col) => (
                     <Celula key={col.key} coluna={col} linha={linha} />
@@ -69,21 +109,21 @@ export default function TabelaPaginada({
       </div>
 
       {comPaginacao && (
-        <div className="flex-shrink-0 flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex-shrink-0 flex items-center justify-between pt-2 border-t border-borda">
           <button
             onClick={onAnterior}
             disabled={pagina <= 1}
-            className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1 text-xs border border-borda rounded hover:bg-azul-suave disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             Anterior
           </button>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-texto-suave">
             Página {pagina} de {totalPaginas}
           </span>
           <button
             onClick={onProxima}
             disabled={pagina >= totalPaginas}
-            className="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1 text-xs border border-borda rounded hover:bg-azul-suave disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             Próxima
           </button>

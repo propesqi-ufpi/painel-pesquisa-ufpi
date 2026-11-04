@@ -35,7 +35,7 @@ export default function Home() {
 
   return (
     <div className="min-h-full flex flex-col gap-4 justify-center">
-      <h2 className="text-center font-bold text-azul-escuro dark:text-azul-claro text-base uppercase tracking-wide">
+      <h2 className="text-center font-bold text-azul text-base uppercase tracking-wide">
         Painel de Pesquisa, Desenvolvimento e Inovação — UFPI
       </h2>
 
@@ -47,7 +47,7 @@ export default function Home() {
       </div>
 
       {kpis.ultima_atualizacao && (
-        <p className="text-center text-xs text-gray-500">
+        <p className="text-center text-xs text-texto-suave">
           Última atualização: {kpis.ultima_atualizacao}
         </p>
       )}

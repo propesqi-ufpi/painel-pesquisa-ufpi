@@ -9,6 +9,8 @@ vi.mock('recharts', () => ({
   YAxis:        () => null,
   CartesianGrid:() => null,
   Tooltip:      () => null,
+  Cell: () => null,
+  LabelList: () => null,
 }))
 
 vi.mock('../../api/index.js', () => ({

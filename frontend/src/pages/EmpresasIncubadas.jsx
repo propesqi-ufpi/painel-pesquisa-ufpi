@@ -1,24 +1,22 @@
 import { useState, useEffect, useRef } from 'react'
 import {
-  PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer,
-} from 'recharts'
-import {
   getKPIsIncubadas, getFiltrosIncubadas,
   getIncubadasPorIncubadora, getIncubadas,
 } from '../api/index.js'
 import CardMetrica from '../components/CardMetrica'
 import SkeletonCard from '../components/SkeletonCard'
+import ChipsFiltros from '../components/ChipsFiltros'
 import FiltroSelect from '../components/FiltroSelect'
 import BotaoLimparFiltros from '../components/BotaoLimparFiltros'
 import TabelaPaginada from '../components/TabelaPaginada'
-import TooltipGrafico from '../components/TooltipGrafico'
 import BotaoExportarCSV from '../components/BotaoExportarCSV'
 import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconIncubadas, iconGraduadas, iconInbate } from '../assets/icons.js'
-import { useChartColors } from '../hooks/useChartColors'
-
 import { opcoesFiltro } from '../utils/exibicao'
-
+import { useCoresGrafico, useCorPorCategoria } from '../utils/coresGrafico'
+import { alternarValor, semChave } from '../utils/filtroCruzado'
+import Rosca from '../components/graficos/Rosca'
+import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
   { key: 'nome_projeto',   label: 'NOME DO PROJETO' },
@@ -28,15 +26,11 @@ const COLUNAS = [
   { key: 'incubadora',     label: 'INCUBADORA' },
 ]
 
-const CORES_DONUT = [
-  '#1E3A5F', '#4A90D9', '#2E5F8A', '#7AB3E0', '#A8D1F0',
-]
-
-
 function fa(arr) { return arr.length > 0 ? arr : undefined }
 
 export default function EmpresasIncubadas() {
-  const cores = useChartColors()
+  const cores = useCoresGrafico()
+  const corDe = useCorPorCategoria(cores)
   const [kpis,               setKpis]               = useState({})
   const [opcoes,             setOpcoes]             = useState({})
   const [dadosPorIncubadora, setDadosPorIncubadora] = useState([])
@@ -66,7 +60,7 @@ export default function EmpresasIncubadas() {
 
   useEffect(() => {
     setLoadingGrafico(true)
-    getIncubadasPorIncubadora(filtrosAtivos).then(setDadosPorIncubadora).catch(() => {}).finally(() => setLoadingGrafico(false))
+    getIncubadasPorIncubadora(semChave(filtrosAtivos, 'incubadora')).then(setDadosPorIncubadora).catch(() => {}).finally(() => setLoadingGrafico(false))
   }, [filtroIncubadora, filtroSituacao]) // eslint-disable-line
 
   useEffect(() => {
@@ -77,18 +71,25 @@ export default function EmpresasIncubadas() {
       .finally(() => setLoadingTabela(false))
   }, [filtroIncubadora, filtroSituacao]) // eslint-disable-line
 
+  const alternarIncubadora = (v) => setFiltroIncubadora((atual) => alternarValor(atual, v))
+
   function limparFiltros() {
     setFiltroIncubadora([])
     setFiltroSituacao([])
   }
 
-  const totalDonut = dadosPorIncubadora.reduce((s, d) => s + (d.total ?? 0), 0)
+
+  // Mesmos campos nos seletores e nos chips de filtros ativos.
+  const campos = [
+    { rotulo: 'Incubadora', valor: filtroIncubadora, alterar: setFiltroIncubadora, opcoes: opcoesFiltro(opcoes.incubadoras) },
+    { rotulo: 'Situação', valor: filtroSituacao, alterar: setFiltroSituacao, opcoes: opcoesFiltro(opcoes.situacoes) },
+  ]
 
   return (
-    <div className="lg:h-full flex flex-col gap-3">
+    <div className="pagina">
 
       {/* ── Linha 1: Cards + Filtros ── */}
-      <div className="flex-shrink-0 flex flex-col lg:flex-row gap-3">
+      <div className="pagina-topo">
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:flex-1">
           {loadingKpis ? (
@@ -102,8 +103,8 @@ export default function EmpresasIncubadas() {
           )}
         </div>
 
-        <div className="w-full lg:w-56 flex-shrink-0">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm space-y-2">
+        <div className="lg:w-56 lg:flex-shrink-0">
+          <div className="bg-superficie rounded-xl p-3 shadow-sm space-y-2">
             <div className="flex gap-2 items-end">
               <FiltroSelect
                 label="Incubadora"
@@ -119,43 +120,30 @@ export default function EmpresasIncubadas() {
         </div>
       </div>
 
+      <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
+
       {/* ── Linha 2: Donut + Tabela ── */}
-      <div className="lg:flex-1 lg:min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3">
+      <div className="pagina-corpo">
 
         {/* Donut */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col">
-          <div ref={refGrafico}>
-            <h3 className="text-xs font-semibold text-center text-gray-700 dark:text-gray-200 mb-2">
+        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
+          <div ref={refGrafico} className="flex-1 flex flex-col">
+            <h3 className="text-xs font-semibold text-center text-texto mb-2">
               Número de Empresas Incubadas por Incubadora
             </h3>
+            <DicaFiltro />
             {loadingGrafico ? (
-              <div className="h-48 flex items-center justify-center text-gray-400 text-xs">Carregando…</div>
+              <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart>
-                  <Pie
-                    data={dadosPorIncubadora}
-                    dataKey="total"
-                    nameKey="incubadora"
-                    cx="42%"
-                    cy="50%"
-                    innerRadius={45}
-                    outerRadius={90}
-                    label={({ value, percent }) =>
-                      `${value} (${(percent * 100).toFixed(1).replace('.', ',')}%)`
-                    }
-                    labelLine
-                  >
-                    {dadosPorIncubadora.map((_, i) => (
-                      <Cell key={i} fill={cores.paleta(CORES_DONUT)[i % CORES_DONUT.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<TooltipGrafico total={totalDonut} />} />
-                  <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" iconSize={7}
-                    formatter={(value) => <span className="text-xs text-gray-700 dark:text-gray-300">{value}</span>}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <Rosca
+                dados={dadosPorIncubadora}
+                categoria="incubadora"
+                corDe={corDe}
+                selecionados={filtroIncubadora}
+                onAlternar={alternarIncubadora}
+                rotuloTotal="empresas"
+                nomeSerie="Empresas"
+              />
             )}
           </div>
           <div className="flex justify-end mt-1">
@@ -164,14 +152,14 @@ export default function EmpresasIncubadas() {
         </div>
 
         {/* Tabela */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm flex flex-col min-h-0">
+        <div className="cartao-tabela">
           <div className="flex items-center justify-between mb-2 flex-shrink-0">
-            <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-200">
+            <h3 className="text-xs font-semibold text-texto">
               Informações das Empresas
             </h3>
             <BotaoExportarCSV dados={incubadas} nomeArquivo="incubadas" colunas={COLUNAS} />
           </div>
-          <div className="h-96 lg:h-auto lg:flex-1 lg:min-h-0">
+          <div className="cartao-tabela-corpo">
             <TabelaPaginada colunas={COLUNAS} dados={incubadas} loading={loadingTabela} />
           </div>
         </div>

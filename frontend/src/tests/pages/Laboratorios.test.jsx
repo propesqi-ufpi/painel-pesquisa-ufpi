@@ -8,6 +8,11 @@ vi.mock('recharts', () => ({
   Cell:      () => null,
   Legend:    () => null,
   Tooltip:   () => null,
+  BarChart: ({ children }) => <div data-testid="bar-chart">{children}</div>,
+  Bar: () => null,
+  LabelList: () => null,
+  XAxis: () => null,
+  YAxis: () => null,
 }))
 
 vi.mock('../../api/index.js', () => ({
@@ -86,10 +91,10 @@ describe('Laboratorios', () => {
     )
   })
 
-  it('exibe gráfico de pizza (por centro)', async () => {
+  it('exibe gráfico de barras horizontais (por centro)', async () => {
     renderPage()
     await waitFor(() => {
-      expect(screen.getByTestId('pie-chart')).toBeInTheDocument()
+      expect(screen.getByTestId('bar-chart')).toBeInTheDocument()
       expect(screen.getByText(/Nº de Laboratório x Centro\/Campi/)).toBeInTheDocument()
     })
   })
