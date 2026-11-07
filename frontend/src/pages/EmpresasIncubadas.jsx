@@ -20,9 +20,9 @@ import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
   { key: 'nome_projeto',   label: 'NOME DO PROJETO' },
-  { key: 'objetivo',       label: 'OBJETIVO' },
+  { key: 'objetivo',       label: 'OBJETIVO', longo: true },
   { key: 'equipe_projeto', label: 'EQUIPE DO PROJETO', tipo: 'pessoas' },
-  { key: 'contato',        label: 'CONTATO' },
+  { key: 'contato',        label: 'CONTATO', longo: true },
   { key: 'incubadora',     label: 'INCUBADORA' },
 ]
 
@@ -86,7 +86,7 @@ export default function EmpresasIncubadas() {
   ]
 
   return (
-    <div className="pagina">
+    <div className="pagina-com-tabela">
 
       {/* ── Linha 1: Cards + Filtros ── */}
       <div className="pagina-topo">
@@ -123,45 +123,42 @@ export default function EmpresasIncubadas() {
       <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
 
       {/* ── Linha 2: Donut + Tabela ── */}
-      <div className="pagina-corpo">
-
-        {/* Donut */}
-        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
-          <div ref={refGrafico} className="flex-1 flex flex-col">
-            <h3 className="text-xs font-semibold text-center text-texto mb-2">
-              Número de Empresas Incubadas por Incubadora
-            </h3>
-            <DicaFiltro />
-            {loadingGrafico ? (
-              <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
-            ) : (
-              <Rosca
-                dados={dadosPorIncubadora}
-                categoria="incubadora"
-                corDe={corDe}
-                selecionados={filtroIncubadora}
-                onAlternar={alternarIncubadora}
-                rotuloTotal="empresas"
-                nomeSerie="Empresas"
-              />
-            )}
-          </div>
-          <div className="flex justify-end mt-1">
-            <BotaoExportarPNG refGrafico={refGrafico} nomeArquivo="incubadas_por_incubadora" />
-          </div>
+      {/* Donut */}
+      <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
+        <div ref={refGrafico} className="flex-1 flex flex-col">
+          <h3 className="text-xs font-semibold text-center text-texto mb-2">
+            Número de Empresas Incubadas por Incubadora
+          </h3>
+          <DicaFiltro />
+          {loadingGrafico ? (
+            <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
+          ) : (
+            <Rosca
+              dados={dadosPorIncubadora}
+              categoria="incubadora"
+              corDe={corDe}
+              selecionados={filtroIncubadora}
+              onAlternar={alternarIncubadora}
+              rotuloTotal="empresas"
+              nomeSerie="Empresas"
+            />
+          )}
         </div>
+        <div className="flex justify-end mt-1">
+          <BotaoExportarPNG refGrafico={refGrafico} nomeArquivo="incubadas_por_incubadora" />
+        </div>
+      </div>
 
-        {/* Tabela */}
-        <div className="cartao-tabela">
-          <div className="flex items-center justify-between mb-2 flex-shrink-0">
-            <h3 className="text-xs font-semibold text-texto">
-              Informações das Empresas
-            </h3>
-            <BotaoExportarCSV dados={incubadas} nomeArquivo="incubadas" colunas={COLUNAS} />
-          </div>
-          <div className="cartao-tabela-corpo">
-            <TabelaPaginada colunas={COLUNAS} dados={incubadas} loading={loadingTabela} />
-          </div>
+      {/* Tabela */}
+      <div className="cartao-tabela">
+        <div className="flex items-center justify-between mb-2 flex-shrink-0">
+          <h3 className="text-xs font-semibold text-texto">
+            Informações das Empresas
+          </h3>
+          <BotaoExportarCSV dados={incubadas} nomeArquivo="incubadas" colunas={COLUNAS} />
+        </div>
+        <div className="cartao-tabela-corpo">
+          <TabelaPaginada colunas={COLUNAS} dados={incubadas} loading={loadingTabela} />
         </div>
       </div>
     </div>
