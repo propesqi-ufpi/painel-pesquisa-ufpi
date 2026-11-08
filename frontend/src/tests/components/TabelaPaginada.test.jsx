@@ -161,6 +161,16 @@ describe('TabelaPaginada', () => {
       expect(ordemNaTela()).toEqual(['Carla', 'ana', '—', 'Bruno'])
     })
 
+    it('ordemInicial já abre ordenada e o clique segue o ciclo dali', () => {
+      render(<TabelaPaginada colunas={cols} dados={linhas} ordemInicial={{ key: 'nome', dir: 'asc' }} />)
+      const th = screen.getByRole('columnheader', { name: /NOME/ })
+      expect(th).toHaveAttribute('aria-sort', 'ascending')
+      expect(ordemNaTela()).toEqual(['ana', 'Bruno', 'Carla', '—'])
+
+      fireEvent.click(screen.getByRole('button', { name: /NOME/ }))
+      expect(th).toHaveAttribute('aria-sort', 'descending')
+    })
+
     it('coluna com ordenavel: false não tem botão', () => {
       render(<TabelaPaginada colunas={cols} dados={linhas} />)
       expect(screen.queryByRole('button', { name: /ANO/ })).not.toBeInTheDocument()
