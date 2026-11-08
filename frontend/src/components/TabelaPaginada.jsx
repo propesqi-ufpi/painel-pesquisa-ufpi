@@ -35,17 +35,55 @@ function Cabecalho({ coluna, ordem, onOrdenar }) {
   )
 }
 
-function Celula({ coluna, linha }) {
+// Acima disso o texto de uma coluna `longo` fica cortado em três linhas.
+const LIMITE_TEXTO_LONGO = 110
+
+/*
+ * Largura e quebra por tipo de coluna:
+ *   longo: true   → largura mínima confortável; corta em 3 linhas, e o clique
+ *                   (ou Enter) abre o texto inteiro; o hover mostra o texto todo.
+ *   curta: true   → não quebra linha (códigos, anos, siglas).
+ *   tipo 'pessoas' → largura mínima para os nomes não virarem uma coluna fina.
+ */
+function classesDaColuna(coluna) {
+  if (coluna.longo) return 'min-w-[16rem] max-w-[32rem]'
+  if (coluna.curta) return 'whitespace-nowrap'
+  if (coluna.tipo === 'pessoas') return 'min-w-[10rem]'
+  return ''
+}
+
+// `relative` prende o texto sr-only (absoluto) ao botão: sem isso ele escapa da
+// rolagem da tabela e alarga a página no celular.
+function TextoLongo({ texto, aberto, onAlternar }) {
+  return (
+    <button
+      type="button"
+      onClick={onAlternar}
+      aria-expanded={aberto}
+      title={aberto ? undefined : texto}
+      className="relative block w-full text-left rounded hover:text-azul focus:outline-none focus-visible:ring-2 focus-visible:ring-azul"
+    >
+      <span className={aberto ? '' : 'line-clamp-3'}>{texto}</span>
+      <span className="sr-only">{aberto ? ' (recolher)' : ' (ver texto completo)'}</span>
+    </button>
+  )
+}
+
+function Celula({ coluna, linha, aberta, onAlternar }) {
   const valor = valorExibicao(coluna, linha)
   const bruto = linha[coluna.key]
   // Quando a limpeza muda o texto, o valor original da planilha fica no tooltip.
   const original = bruto != null && String(bruto).trim() !== String(valor ?? '') ? String(bruto) : undefined
+  const longo = coluna.longo && !coluna.render && typeof valor === 'string' && valor.length > LIMITE_TEXTO_LONGO
+
+  let conteudo
+  if (coluna.render) conteudo = coluna.render(valor, linha)
+  else if (longo) conteudo = <TextoLongo texto={valor} aberto={aberta} onAlternar={onAlternar} />
+  else conteudo = valor ?? <span className="text-texto-suave" aria-label="Não informado">{VAZIO}</span>
 
   return (
-    <td title={original} className="text-xs py-1.5 px-3">
-      {coluna.render
-        ? coluna.render(valor, linha)
-        : valor ?? <span className="text-texto-suave" aria-label="Não informado">{VAZIO}</span>}
+    <td title={longo ? undefined : original} className={`text-xs py-1.5 px-3 align-top ${classesDaColuna(coluna)}`}>
+      {conteudo}
     </td>
   )
 }
@@ -59,9 +97,22 @@ export default function TabelaPaginada({
   totalPaginas,
   onAnterior,
   onProxima,
+  ordemInicial = null,
 }) {
-  const [ordem, setOrdem] = useState(null)
+  // `ordemInicial` (ex.: { key: 'nome', dir: 'asc' }) é só o ponto de partida:
+  // o clique no cabeçalho segue o ciclo normal a partir dela.
+  const [ordem, setOrdem] = useState(ordemInicial)
+  // Linhas com o texto longo aberto, pela chave da linha.
+  const [abertas, setAbertas] = useState(() => new Set())
+  const alternarLinha = (chave) => setAbertas((atual) => {
+    const nova = new Set(atual)
+    if (nova.has(chave)) nova.delete(chave)
+    else nova.add(chave)
+    return nova
+  })
   const linhas = useMemo(() => ordenarLinhas(dados, colunas, ordem), [dados, colunas, ordem])
+  // Chave estável da linha: o id, ou a posição original (não a posição na tela).
+  const posicao = useMemo(() => new Map(dados.map((linha, i) => [linha, i])), [dados])
 
   if (loading) return <SkeletonTabela />
 
@@ -91,18 +142,21 @@ export default function TabelaPaginada({
                 </td>
               </tr>
             ) : (
-              linhas.map((linha, i) => (
-                <tr
-                  key={linha.id ?? i}
-                  className={`${
-                    i % 2 === 0 ? 'bg-superficie' : 'bg-superficie-2'
-                  } hover:bg-azul-suave transition-colors`}
-                >
-                  {colunas.map((col) => (
-                    <Celula key={col.key} coluna={col} linha={linha} />
-                  ))}
-                </tr>
-              ))
+              linhas.map((linha, i) => {
+                const chave = linha.id ?? posicao.get(linha)
+                return (
+                  <tr
+                    key={chave}
+                    className={`${
+                      i % 2 === 0 ? 'bg-superficie' : 'bg-superficie-2'
+                    } hover:bg-azul-suave transition-colors`}
+                  >
+                    {colunas.map((col) => (
+                      <Celula key={col.key} coluna={col} linha={linha} aberta={abertas.has(chave)} onAlternar={() => alternarLinha(chave)} />
+                    ))}
+                  </tr>
+                )
+              })
             )}
           </tbody>
         </table>

@@ -137,6 +137,51 @@ describe('TabelaPaginada', () => {
     expect(celula).toHaveAttribute('title', 'PROF. DR. ANA DE SOUSA')
   })
 
+  describe('colunas de texto longo e curtas', () => {
+    const longo = 'Desenvolver uma plataforma de monitoramento da qualidade da água em comunidades ribeirinhas, com sensores de baixo custo e relatórios mensais.'
+    const cols = [
+      { key: 'ano', label: 'ANO', curta: true },
+      { key: 'objetivo', label: 'OBJETIVO', longo: true },
+    ]
+
+    it('texto longo vem cortado, com o texto inteiro no hover, e abre/fecha no clique', () => {
+      render(<TabelaPaginada colunas={cols} dados={[{ id: 1, ano: 2020, objetivo: longo }]} />)
+      const botao = screen.getByRole('button', { name: /plataforma de monitoramento/ })
+      expect(botao).toHaveAttribute('aria-expanded', 'false')
+      expect(botao).toHaveAttribute('title', longo)
+      expect(botao.querySelector('.line-clamp-3')).not.toBeNull()
+
+      fireEvent.click(botao)
+      expect(botao).toHaveAttribute('aria-expanded', 'true')
+      expect(botao.querySelector('.line-clamp-3')).toBeNull()
+
+      fireEvent.click(botao)
+      expect(botao).toHaveAttribute('aria-expanded', 'false')
+    })
+
+    it('texto curto numa coluna longa fica como texto simples', () => {
+      render(<TabelaPaginada colunas={cols} dados={[{ id: 1, ano: 2020, objetivo: 'Curto' }]} />)
+      expect(screen.queryByRole('button', { name: /Curto/ })).not.toBeInTheDocument()
+      expect(screen.getByText('Curto')).toBeInTheDocument()
+    })
+
+    it('coluna curta não quebra linha e coluna longa tem largura mínima', () => {
+      render(<TabelaPaginada colunas={cols} dados={[{ id: 1, ano: 2020, objetivo: longo }]} />)
+      expect(screen.getByText('2020').closest('td')).toHaveClass('whitespace-nowrap')
+      expect(screen.getByRole('button', { name: /plataforma/ }).closest('td')).toHaveClass('min-w-[16rem]')
+    })
+
+    it('a linha aberta continua aberta depois de reordenar', () => {
+      const dados = [{ id: 1, ano: 2021, objetivo: longo }, { id: 2, ano: 2019, objetivo: longo + ' B' }]
+      render(<TabelaPaginada colunas={cols} dados={dados} />)
+      fireEvent.click(screen.getAllByRole('button', { expanded: false })[0])
+      fireEvent.click(screen.getByRole('button', { name: /ANO/ }))
+      const linhas = screen.getAllByRole('row').slice(1)
+      expect(linhas[0].cells[0]).toHaveTextContent('2019')
+      expect(linhas[1].querySelector('[aria-expanded]')).toHaveAttribute('aria-expanded', 'true')
+    })
+  })
+
   describe('ordenação pelo cabeçalho', () => {
     const cols = [{ key: 'nome', label: 'NOME' }, { key: 'ano', label: 'ANO', ordenavel: false }]
     const linhas = [{ nome: 'Carla' }, { nome: 'ana' }, { nome: null }, { nome: 'Bruno' }]
@@ -159,6 +204,16 @@ describe('TabelaPaginada', () => {
       fireEvent.click(botao)
       expect(th).toHaveAttribute('aria-sort', 'none')
       expect(ordemNaTela()).toEqual(['Carla', 'ana', '—', 'Bruno'])
+    })
+
+    it('ordemInicial já abre ordenada e o clique segue o ciclo dali', () => {
+      render(<TabelaPaginada colunas={cols} dados={linhas} ordemInicial={{ key: 'nome', dir: 'asc' }} />)
+      const th = screen.getByRole('columnheader', { name: /NOME/ })
+      expect(th).toHaveAttribute('aria-sort', 'ascending')
+      expect(ordemNaTela()).toEqual(['ana', 'Bruno', 'Carla', '—'])
+
+      fireEvent.click(screen.getByRole('button', { name: /NOME/ }))
+      expect(th).toHaveAttribute('aria-sort', 'descending')
     })
 
     it('coluna com ordenavel: false não tem botão', () => {

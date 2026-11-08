@@ -14,11 +14,11 @@ import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
-  { key: 'nome_grupo',        label: 'NOME DO GRUPO' },
+  { key: 'nome_grupo',        label: 'NOME DO GRUPO', longo: true },
   { key: 'nome_lider',        label: 'NOME DO LÍDER', tipo: 'pessoas' },
   { key: 'area_predominante', label: 'ÁREA PREDOMINANTE' },
-  { key: 'ultimo_envio',      label: 'ÚLTIMO ENVIO' },
-  { key: 'status',            label: 'SITUAÇÃO' },
+  { key: 'ultimo_envio',      label: 'ÚLTIMO ENVIO', curta: true },
+  { key: 'status',            label: 'SITUAÇÃO', curta: true },
 ]
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
@@ -96,7 +96,7 @@ export default function GruposPesquisa() {
   ]
 
   return (
-    <div className="pagina">
+    <div className="pagina-com-tabela">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
       <div className="pagina-topo-tres lg:h-[250px]">
