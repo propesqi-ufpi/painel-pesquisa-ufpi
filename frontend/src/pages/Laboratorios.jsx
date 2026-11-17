@@ -14,8 +14,8 @@ import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
-  { key: 'nome',        label: 'NOME' },
-  { key: 'sigla',       label: 'SIGLA' },
+  { key: 'nome',        label: 'NOME', longo: true },
+  { key: 'sigla',       label: 'SIGLA', curta: true },
   { key: 'centro_campi', label: 'CENTRO/CAMPI' },
   { key: 'responsavel', label: 'RESPONSÁVEL', tipo: 'pessoas' },
   { key: 'email',       label: 'EMAIL' },
@@ -95,7 +95,7 @@ export default function Laboratorios() {
   ]
 
   return (
-    <div className="pagina">
+    <div className="pagina-com-tabela">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
       <div className="pagina-topo-tres lg:h-[280px]">

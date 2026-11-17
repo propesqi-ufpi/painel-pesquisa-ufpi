@@ -14,14 +14,14 @@ import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
-  { key: 'programa',       label: 'PROGRAMA' },
-  { key: 'fone',           label: 'FONE' },
+  { key: 'programa',       label: 'PROGRAMA', longo: true },
+  { key: 'fone',           label: 'FONE', curta: true },
   { key: 'email',          label: 'EMAIL' },
   { key: 'centro',         label: 'CENTRO' },
   { key: 'nivel',          label: 'NÍVEL' },
   { key: 'modalidade',     label: 'MODALIDADE' },
   { key: 'tipo',           label: 'TIPO' },
-  { key: 'conceito_capes', label: 'CONCEITO CAPES' },
+  { key: 'conceito_capes', label: 'CONCEITO CAPES', curta: true },
 ]
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
@@ -104,7 +104,7 @@ export default function PosGraduacao() {
   ]
 
   return (
-    <div className="pagina">
+    <div className="pagina-com-tabela">
 
       {/* ── Top: Card + Gráfico + Filtros ── */}
       <div className="pagina-topo-tres lg:h-[250px]">

@@ -23,11 +23,11 @@ import BotaoExportarPNG from '../components/BotaoExportarPNG'
 import { iconPatentes, iconSoftwares, iconMarcas } from '../assets/icons.js'
 
 const COLUNAS_VITRINE = [
-  { key: 'pedido',     label: 'PEDIDO' },
-  { key: 'ano',        label: 'ANO' },
-  { key: 'titulo',     label: 'TÍTULO' },
+  { key: 'pedido',     label: 'PEDIDO', curta: true },
+  { key: 'ano',        label: 'ANO', curta: true },
+  { key: 'titulo',     label: 'TÍTULO', longo: true },
   { key: 'inventores', label: 'INVENTORES', tipo: 'pessoas' },
-  { key: 'descricao',  label: 'DESCRIÇÃO' },
+  { key: 'descricao',  label: 'DESCRIÇÃO', longo: true },
 ]
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
@@ -100,10 +100,10 @@ export default function ProducaoIntelectual() {
   ]
 
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:h-full">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
 
       {/* ── Filtros (sidebar esquerda) ── */}
-      <div className="bg-superficie rounded-xl p-3 shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-3 lg:w-40 lg:flex-shrink-0 lg:flex lg:flex-col">
+      <div className="bg-superficie rounded-xl p-3 shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-3 lg:w-40 lg:flex-shrink-0 lg:flex lg:flex-col lg:sticky lg:top-0">
         <FiltroTexto label="Inventores" value={filtroInventor} onChange={setFiltroInventor} placeholder="Buscar inventor…" />
         <FiltroSelect label="Ano"  value={filtroAno}  onChange={setFiltroAno}  options={anosDisponiveis} />
         <FiltroSelect label="Tipo" value={filtroTipo} onChange={setFiltroTipo} options={tiposDisponiveis} />
@@ -111,7 +111,7 @@ export default function ProducaoIntelectual() {
       </div>
 
       {/* ── Conteúdo principal ── */}
-      <div className="flex-1 min-w-0 flex flex-col gap-3 min-h-0">
+      <div className="flex-1 min-w-0 flex flex-col gap-3">
 
         <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
 

@@ -15,10 +15,10 @@ import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
-  { key: 'denominacao',   label: 'DENOMINAÇÃO' },
+  { key: 'denominacao',   label: 'DENOMINAÇÃO', longo: true },
   { key: 'centro_campus', label: 'CENTRO/CAMPUS' },
   { key: 'coordenador',   label: 'COORDENADOR', tipo: 'pessoas' },
-  { key: 'ano_resolucao', label: 'ANO DA RESOLUÇÃO' },
+  { key: 'ano_resolucao', label: 'ANO DA RESOLUÇÃO', curta: true },
 ]
 
 function fa(arr) { return arr.length > 0 ? arr : undefined }
@@ -86,7 +86,7 @@ export default function NucleosPesquisa() {
   ]
 
   return (
-    <div className="pagina">
+    <div className="pagina-com-tabela">
 
       {/* ── Linha 1: Cards + Filtros ── */}
       <div className="pagina-topo">
@@ -116,37 +116,34 @@ export default function NucleosPesquisa() {
       <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
 
       {/* ── Linha 2: Gráfico + Tabela ── */}
-      <div className="pagina-corpo">
-
-        {/* Gráfico */}
-        <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
-          <div ref={refGrafico}>
-            <h3 className="text-xs font-semibold text-center text-texto mb-2">
-              Nº de Núcleos x Centro/Campi
-            </h3>
-            <DicaFiltro />
-            {loadingGrafico ? (
-              <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
-            ) : (
-              <BarrasHorizontais dados={dadosPorCentro} categoria="centro" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Núcleos" alturaMax={260} />
-            )}
-          </div>
-          <div className="flex justify-end mt-1">
-            <BotaoExportarPNG refGrafico={refGrafico} nomeArquivo="nucleos_por_centro" />
-          </div>
+      {/* Gráfico */}
+      <div className="bg-superficie rounded-xl p-3 shadow-sm flex flex-col">
+        <div ref={refGrafico}>
+          <h3 className="text-xs font-semibold text-center text-texto mb-2">
+            Nº de Núcleos x Centro/Campi
+          </h3>
+          <DicaFiltro />
+          {loadingGrafico ? (
+            <div className="h-48 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
+          ) : (
+            <BarrasHorizontais dados={dadosPorCentro} categoria="centro" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Núcleos" alturaMax={260} />
+          )}
         </div>
+        <div className="flex justify-end mt-1">
+          <BotaoExportarPNG refGrafico={refGrafico} nomeArquivo="nucleos_por_centro" />
+        </div>
+      </div>
 
-        {/* Tabela */}
-        <div className="cartao-tabela">
-          <div className="flex items-center justify-between mb-2 flex-shrink-0">
-            <h3 className="text-xs font-semibold text-texto">
-              Informações dos Núcleos de Pesquisa
-            </h3>
-            <BotaoExportarCSV dados={nucleos} nomeArquivo="nucleos" colunas={COLUNAS} />
-          </div>
-          <div className="cartao-tabela-corpo">
-            <TabelaPaginada colunas={COLUNAS} dados={nucleos} loading={loadingTabela} />
-          </div>
+      {/* Tabela */}
+      <div className="cartao-tabela">
+        <div className="flex items-center justify-between mb-2 flex-shrink-0">
+          <h3 className="text-xs font-semibold text-texto">
+            Informações dos Núcleos de Pesquisa
+          </h3>
+          <BotaoExportarCSV dados={nucleos} nomeArquivo="nucleos" colunas={COLUNAS} />
+        </div>
+        <div className="cartao-tabela-corpo">
+          <TabelaPaginada colunas={COLUNAS} dados={nucleos} loading={loadingTabela} />
         </div>
       </div>
     </div>

@@ -19,10 +19,11 @@ vi.mock('../../api/index.js', () => ({
   getKPIsBolsistas:      vi.fn(),
   getFiltrosBolsistas:   vi.fn(),
   getBolsistasPorCampus: vi.fn(),
+  getBolsistas:          vi.fn(),
 }))
 
 import {
-  getKPIsBolsistas, getFiltrosBolsistas, getBolsistasPorCampus,
+  getKPIsBolsistas, getFiltrosBolsistas, getBolsistasPorCampus, getBolsistas,
 } from '../../api/index.js'
 import Bolsistas from '../../pages/Bolsistas'
 
@@ -37,6 +38,11 @@ function setup() {
   getBolsistasPorCampus.mockResolvedValue([
     { campus: 'Teresina', total: 90 },
     { campus: 'Picos',    total: 30 },
+  ])
+  getBolsistas.mockResolvedValue([
+    { id: 1, nome: 'Dr. Zacarias Lima', nivel: '1A', modalidade: 'PQ', orgao: 'CNPq', campus_centro: 'Teresina' },
+    { id: 2, nome: 'Ana Souza',          nivel: null, modalidade: 'PV', orgao: 'UFPI', campus_centro: 'Picos' },
+    { id: 3, nome: 'Profa. Dra. Márcia Reis', nivel: '2', modalidade: 'PQ', orgao: 'CNPq', campus_centro: 'Teresina' },
   ])
 }
 
@@ -63,12 +69,12 @@ describe('Bolsistas', () => {
 
   it('exibe título "CNPq" no card', async () => {
     renderPage()
-    await waitFor(() => expect(screen.getByText('CNPq')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getAllByText('CNPq').some((el) => el.tagName === 'P')).toBe(true))
   })
 
   it('exibe título "UFPI" no card', async () => {
     renderPage()
-    await waitFor(() => expect(screen.getByText('UFPI')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getAllByText('UFPI').some((el) => el.tagName === 'P')).toBe(true))
   })
 
   it('exibe filtro de Modalidade', async () => {
@@ -100,9 +106,31 @@ describe('Bolsistas', () => {
     })
   })
 
+  it('lista todos os bolsistas em ordem alfabética, sem títulos', async () => {
+    renderPage()
+    await waitFor(() => expect(screen.getByText('Zacarias Lima')).toBeInTheDocument())
+    const linhas = screen.getAllByRole('row').slice(1).map((tr) => tr.cells[0].textContent)
+    expect(linhas).toEqual(['Ana Souza', 'Márcia Reis', 'Zacarias Lima'])
+    expect(screen.getByRole('columnheader', { name: /NOME/ })).toHaveAttribute('aria-sort', 'ascending')
+    expect(screen.getByText('(3)')).toBeInTheDocument()
+  })
+
+  it('busca a lista sem filtros e com todos os registros', async () => {
+    renderPage()
+    await waitFor(() => expect(getBolsistas).toHaveBeenCalled())
+    expect(getBolsistas).toHaveBeenCalledWith(expect.objectContaining({ limit: 9999, campus_centro: undefined }))
+  })
+
+  it('mostra aviso quando a lista vem vazia', async () => {
+    getBolsistas.mockResolvedValue([])
+    renderPage()
+    await waitFor(() => expect(screen.getByText('Nenhum bolsista para os filtros escolhidos')).toBeInTheDocument())
+  })
+
   it('não quebra quando API falha', async () => {
     getKPIsBolsistas.mockRejectedValue(new Error('Erro'))
     getBolsistasPorCampus.mockRejectedValue(new Error('Erro'))
+    getBolsistas.mockRejectedValue(new Error('Erro'))
     expect(() => renderPage()).not.toThrow()
   })
 })

@@ -18,8 +18,8 @@ export default function Layout() {
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header onMenuClick={() => setSidebarAberta(true)} />
-        {/* Até lg a página rola inteira. A partir de lg cada página ocupa a tela e
-            a tabela rola por dentro; a rolagem fica ligada para telas baixas. */}
+        {/* A página rola aqui. Páginas só de gráficos ocupam a tela a partir de lg;
+            as com tabela rolam, e a tabela rola por dentro (ver index.css). */}
         <main className="flex-1 overflow-y-auto p-3 sm:p-4">
           <Outlet />
         </main>

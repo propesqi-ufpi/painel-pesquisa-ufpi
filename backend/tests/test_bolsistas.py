@@ -63,3 +63,18 @@ def test_bolsistas_sem_auth_retorna_401(client_sem_auth):
 def test_bolsistas_kpis_sem_auth_retorna_401(client_sem_auth):
     r = client_sem_auth.get("/bolsistas/kpis")
     assert r.status_code == 401
+
+
+def test_bolsistas_lista_em_ordem_alfabetica(client):
+    from app import models
+    from tests.conftest import TestingSessionLocal
+    db = TestingSessionLocal()
+    db.add_all([models.Bolsista(nome=n, campus_centro="CCN") for n in ("Zuleide", "Ana", "Mário")])
+    db.commit()
+    try:
+        nomes = [b["nome"] for b in client.get("/bolsistas/?campus_centro=CCN").json()]
+        assert nomes == ["Ana", "Mário", "Zuleide"]
+    finally:
+        db.query(models.Bolsista).filter(models.Bolsista.campus_centro == "CCN").delete()
+        db.commit()
+        db.close()

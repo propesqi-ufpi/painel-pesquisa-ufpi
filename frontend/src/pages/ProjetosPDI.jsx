@@ -15,11 +15,11 @@ import BarrasHorizontais from '../components/graficos/BarrasHorizontais'
 import DicaFiltro from '../components/graficos/DicaFiltro'
 
 const COLUNAS = [
-  { key: 'titulo',      label: 'PROJETOS' },
+  { key: 'titulo',      label: 'PROJETOS', longo: true },
   { key: 'centro',      label: 'CENTRO' },
   { key: 'coordenador', label: 'COORDENADORES', tipo: 'pessoas' },
   { key: 'natureza',    label: 'NATUREZA' },
-  { key: 'situacao',    label: 'SITUAÇÃO' },
+  { key: 'situacao',    label: 'SITUAÇÃO', curta: true },
   { key: 'area',        label: 'ÁREA DO CONHECIMENTO' },
 ]
 
@@ -103,7 +103,7 @@ export default function ProjetosPDI() {
   ]
 
   return (
-    <div className="pagina">
+    <div className="pagina-com-tabela">
 
       {/* ── Linha 1: KPI Cards + Filtros ── */}
       <div className="pagina-topo">
@@ -134,57 +134,54 @@ export default function ProjetosPDI() {
       <ChipsFiltros campos={campos} onLimpar={limparFiltros} />
 
       {/* ── Linha 2: Gráficos + Tabela ── */}
-      <div className="pagina-corpo">
+      {/* Gráficos lado a lado */}
+      <div className="pagina-graficos">
 
-        {/* Coluna de gráficos */}
-        <div className="flex flex-col gap-3 min-h-0">
-
-          <div className="bg-superficie rounded-xl p-3 shadow-sm">
-            <div ref={refGraficoArea}>
-              <h3 className="text-xs font-semibold text-center text-texto mb-2">
-                Nº de Projetos x Área do Conhecimento
-              </h3>
-              <DicaFiltro />
-              {loadingGraficos ? (
-                <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
-              ) : (
-                <BarrasHorizontais dados={dadosPorArea} categoria="area" selecionados={filtroArea} onAlternar={alternarArea} nomeSerie="Projetos" alturaMax={210} />
-              )}
-            </div>
-            <div className="flex justify-end mt-1">
-              <BotaoExportarPNG refGrafico={refGraficoArea} nomeArquivo="projetos_por_area" />
-            </div>
+        <div className="bg-superficie rounded-xl p-3 shadow-sm">
+          <div ref={refGraficoArea}>
+            <h3 className="text-xs font-semibold text-center text-texto mb-2">
+              Nº de Projetos x Área do Conhecimento
+            </h3>
+            <DicaFiltro />
+            {loadingGraficos ? (
+              <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
+            ) : (
+              <BarrasHorizontais dados={dadosPorArea} categoria="area" selecionados={filtroArea} onAlternar={alternarArea} nomeSerie="Projetos" alturaMax={210} />
+            )}
           </div>
-
-          <div className="bg-superficie rounded-xl p-3 shadow-sm">
-            <div ref={refGraficoCentro}>
-              <h3 className="text-xs font-semibold text-center text-texto mb-2">
-                Nº de Projetos x Centros/Campus
-              </h3>
-              <DicaFiltro />
-              {loadingGraficos ? (
-                <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
-              ) : (
-                <BarrasHorizontais dados={dadosPorCentro} categoria="centro" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Projetos" alturaMax={210} />
-              )}
-            </div>
-            <div className="flex justify-end mt-1">
-              <BotaoExportarPNG refGrafico={refGraficoCentro} nomeArquivo="projetos_por_centro" />
-            </div>
+          <div className="flex justify-end mt-1">
+            <BotaoExportarPNG refGrafico={refGraficoArea} nomeArquivo="projetos_por_area" />
           </div>
         </div>
 
-        {/* Tabela */}
-        <div className="cartao-tabela">
-          <div className="flex items-center justify-between mb-2 flex-shrink-0">
-            <h3 className="text-xs font-semibold text-texto">
-              Informações dos Projetos de Pesquisas
+        <div className="bg-superficie rounded-xl p-3 shadow-sm">
+          <div ref={refGraficoCentro}>
+            <h3 className="text-xs font-semibold text-center text-texto mb-2">
+              Nº de Projetos x Centros/Campus
             </h3>
-            <BotaoExportarCSV dados={projetos} nomeArquivo="projetos_pdi" colunas={COLUNAS} />
+            <DicaFiltro />
+            {loadingGraficos ? (
+              <div className="h-40 flex items-center justify-center text-texto-suave text-xs">Carregando…</div>
+            ) : (
+              <BarrasHorizontais dados={dadosPorCentro} categoria="centro" selecionados={filtroCentro} onAlternar={alternarCentro} nomeSerie="Projetos" alturaMax={210} />
+            )}
           </div>
-          <div className="cartao-tabela-corpo">
-            <TabelaPaginada colunas={COLUNAS} dados={projetos} loading={loadingTabela} />
+          <div className="flex justify-end mt-1">
+            <BotaoExportarPNG refGrafico={refGraficoCentro} nomeArquivo="projetos_por_centro" />
           </div>
+        </div>
+      </div>
+
+      {/* Tabela */}
+      <div className="cartao-tabela">
+        <div className="flex items-center justify-between mb-2 flex-shrink-0">
+          <h3 className="text-xs font-semibold text-texto">
+            Informações dos Projetos de Pesquisas
+          </h3>
+          <BotaoExportarCSV dados={projetos} nomeArquivo="projetos_pdi" colunas={COLUNAS} />
+        </div>
+        <div className="cartao-tabela-corpo">
+          <TabelaPaginada colunas={COLUNAS} dados={projetos} loading={loadingTabela} />
         </div>
       </div>
     </div>
